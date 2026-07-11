@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load blog_tags %}
+{% block body %}
+<div class="app-wrapper">
+
+  <!-- ── LEFT SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+      <a href="{% url 'home' %}" class="sidebar-logo">
+        <span class="logo-g">G</span>
+        <span class="logo-text">renadye</span>
+      </a>
+
+      <nav class="sidebar-nav">
+        <a href="{% url 'home' %}" class="nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+          <i class="fa-solid fa-house"></i><span>Home</span>
+        </a>
+        <a href="{% url 'explore' %}" class="nav-item {% if request.resolver_match.url_name == 'explore' or request.resolver_match.url_name == 'category_view' %}active{% endif %}">
+          <i class="fa-solid fa-magnifying-glass"></i><span>Explore</span>
+        </a>
+        <a href="{% url 'notifications' %}" class="nav-item {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
+          <i class="fa-solid fa-bell"></i><span>Notifications</span>
+          <span class="notif-badge" id="notif-badge" style="display:none;">0</span>
+        </a>
+        <a href="{% url 'profile' username=request.user.username %}" class="nav-item {% if request.resolver_match.url_name == 'profile' and request.resolver_match.kwargs.username == request.user.username %}active{% endif %}">
+          <i class="fa-solid fa-user"></i><span>Profile</span>
+        </a>
+      </nav>
+
+      <button class="sidebar-post-btn" onclick="openPostModal()">
+        <i class="fa-solid fa-pen-to-square"></i>
+        <span>Post</span>
+      </button>
+    </div>
+
+    <div class="sidebar-user-widget" onclick="location.href='{% url 'profile' username=request.user.username %}'">
+      <div class="avatar avatar-sm">
+        {% if request.user.profile.avatar %}
+          <img src="{{ request.user.profile.avatar.url }}" alt="avatar" />
+        {% else %}
+          <span>{{ request.user.username|slice:":1"|upper }}</span>
+        {% endif %}
+      </div>
+      <div class="sidebar-user-meta">
+        <strong>{% if request.user.first_name %}{{ request.user.first_name }} {{ request.user.last_name }}{% else %}{{ request.user.username }}{% endif %}</strong>
+        <small>@{{ request.user.username }}</small>
+      </div>
+      <a href="{% url 'logout' %}" class="logout-link" onclick="event.stopPropagation();" title="Logout">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ── MAIN FEED ── -->
+  <main class="main-feed">
+    {% block main_content %}{% endblock %}
+  </main>
+
+  <!-- ── RIGHT PANEL ── -->
+  <aside class="right-panel">
+    <!-- Search -->
+    <div class="search-widget">
+      <form action="{% url 'explore' %}" method="GET">
+        <div class="search-bar">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" name="q" placeholder="Search Grenadye…" value="{{ request.GET.q|default:'' }}" />
+        </div>
+      </form>
+    </div>
+
+    <!-- Categories -->
+    <div class="widget-box">
+      <h3>Categories</h3>
+      {% for cat in categories %}
+      <a href="{% url 'category_view' slug=cat.slug %}" class="category-row">
+        <span class="cat-icon" style="background:{{ cat.color }}22;color:{{ cat.color }};">{{ cat.icon }}</span>
+        <span class="cat-name">{{ cat.name }}</span>
+        <span class="cat-count">{{ cat.posts.count }} posts</span>
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- Suggested Users -->
+    {% if suggested_users %}
+    <div class="widget-box">
+      <h3>Who to follow</h3>
+      {% for u in suggested_users %}
+      <div class="suggest-row">
+        <a href="{% url 'profile' username=u.username %}" class="suggest-avatar avatar avatar-sm">
+          {% if u.profile.avatar %}
+            <img src="{{ u.profile.avatar.url }}" alt="avatar" />
+          {% else %}
+            <span>{{ u.username|slice:":1"|upper }}</span>
+          {% endif %}
+        </a>
+        <div class="suggest-info">
+          <a href="{% url 'profile' username=u.username %}">
+            <strong>{% if u.first_name %}{{ u.first_name }} {{ u.last_name }}{% else %}{{ u.username }}{% endif %}</strong>
+            <small>@{{ u.username }}</small>
+          </a>
+        </div>
+        <button class="follow-btn" data-username="{{ u.username }}" onclick="followUser(this)">Follow</button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <p class="right-footer">© 2026 Grenadye.net</p>
+  </aside>
+
+</div>
+
+<!-- ── BOTTOM NAV (mobile) ── -->
+<nav class="bottom-nav">
+  <a href="{% url 'home' %}" class="bnav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+    <i class="fa-solid fa-house"></i>
+  </a>
+  <a href="{% url 'explore' %}" class="bnav-item {% if request.resolver_match.url_name == 'explore' %}active{% endif %}">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </a>
+  <button class="bnav-compose" onclick="openPostModal()">
+    <i class="fa-solid fa-plus"></i>
+  </button>
+  <a href="{% url 'notifications' %}" class="bnav-item {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
+    <i class="fa-solid fa-bell"></i>
+    <span class="notif-dot" id="notif-dot" style="display:none;"></span>
+  </a>
+  <a href="{% url 'profile' username=request.user.username %}" class="bnav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+    <i class="fa-solid fa-user"></i>
+  </a>
+</nav>
+
+<!-- ── POST MODAL ── -->
+<div class="modal-overlay" id="postModal" onclick="closePostModal(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closePostModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form method="POST" action="{% url 'home' %}" enctype="multipart/form-data" id="modalPostForm">
+      {% csrf_token %}
+      <div class="modal-compose">
+        <div class="avatar avatar-sm">
+          {% if request.user.profile.avatar %}
+            <img src="{{ request.user.profile.avatar.url }}" alt="avatar" />
+          {% else %}
+            <span>{{ request.user.username|slice:":1"|upper }}</span>
+          {% endif %}
+        </div>
+        <div class="modal-fields">
+          <input type="text" name="title" placeholder="Title (optional)" class="modal-title-input" />
+          <textarea name="content" id="modal-content" maxlength="2000" placeholder="What's on your mind?" oninput="updateCharCount(this,'modal-char-count','modal-submit-btn',2000)"></textarea>
+          <div id="modal-img-preview" class="img-preview-wrap"></div>
+          <div class="modal-toolbar">
+            <div class="modal-tools">
+              <label class="tool-btn" title="Add image">
+                <i class="fa-regular fa-image"></i>
+                <input type="file" name="image" accept="image/*" hidden onchange="previewImage(this,'modal-img-preview')" />
+              </label>
+              <select name="category" class="cat-select">
+                <option value="">📂 Category</option>
+                {% for cat in categories %}
+                  <option value="{{ cat.id }}">{{ cat.icon }} {{ cat.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="modal-actions">
+              <span class="char-count" id="modal-char-count">0/2000</span>
+              <button type="submit" class="post-btn" id="modal-submit-btn" disabled>Post</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

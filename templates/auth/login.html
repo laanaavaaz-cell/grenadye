@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Sign In — Grenadye.net{% endblock %}
+{% block body %}
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-brand">
+      <span class="auth-logo-g">G</span>
+      <span class="auth-logo-text">renadye.net</span>
+    </div>
+    <h1>Share your<br/>world with<br/>Grenadye.</h1>
+    <p>A social blog built for creators, thinkers, and communities.</p>
+  </div>
+  <div class="auth-right">
+    <div class="auth-form-card">
+      <div class="auth-brand-sm">
+        <span class="auth-logo-g">G</span>
+        <span>renadye.net</span>
+      </div>
+      <h2>Sign in</h2>
+
+      {% if error %}
+        <div class="auth-error"><i class="fa-solid fa-triangle-exclamation"></i> {{ error }}</div>
+      {% endif %}
+
+      <form method="POST" class="auth-form">
+        {% csrf_token %}
+        <div class="field-wrap">
+          <i class="fa-solid fa-at field-icon"></i>
+          <input type="text" name="identifier" placeholder="Email or username" class="auth-input" required autocomplete="username" />
+        </div>
+        <div class="field-wrap">
+          <i class="fa-solid fa-lock field-icon"></i>
+          <input type="password" name="password" placeholder="Password" class="auth-input" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="auth-btn primary">Sign in</button>
+      </form>
+
+      <div class="auth-divider"><span>New to Grenadye?</span></div>
+      <a href="{% url 'register' %}" class="auth-btn outline">Create an account</a>
+
+      <div class="demo-hint">
+        <i class="fa-solid fa-circle-info"></i>
+        Demo: <strong>grenadye</strong> / <strong>demo1234</strong>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

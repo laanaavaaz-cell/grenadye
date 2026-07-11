@@ -1,0 +1,102 @@
+{% extends 'app_base.html' %}
+{% load blog_tags %}
+{% block title %}@{{ profile_user.username }} — Grenadye.net{% endblock %}
+
+{% block main_content %}
+<div class="feed-header">
+  <a href="javascript:history.back()" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+  <div>
+    <h2>{% if profile_user.first_name %}{{ profile_user.first_name }} {{ profile_user.last_name }}{% else %}{{ profile_user.username }}{% endif %}</h2>
+    <small style="color:var(--muted);">{{ profile.posts_count }} posts</small>
+  </div>
+</div>
+
+<!-- Header Image -->
+<div class="profile-header-img">
+  {% if profile.header_image %}
+    <img src="{{ profile.header_image.url }}" alt="header" />
+  {% else %}
+    <div class="profile-header-placeholder" style="background: linear-gradient(135deg, #1d9bf0 0%, #00ba7c 100%);"></div>
+  {% endif %}
+</div>
+
+<!-- Avatar + Actions -->
+<div class="profile-top-bar">
+  <div class="avatar avatar-lg profile-avatar">
+    {% if profile.avatar %}
+      <img src="{{ profile.avatar.url }}" alt="avatar" />
+    {% else %}
+      <span>{{ profile_user.username|slice:":1"|upper }}</span>
+    {% endif %}
+  </div>
+  <div class="profile-action-btns">
+    {% if profile_user == request.user %}
+      <a href="{% url 'edit_profile' %}" class="btn-outline">Edit profile</a>
+    {% else %}
+      {% if request.user.profile|is_following:profile %}
+        <button class="follow-btn following" data-username="{{ profile_user.username }}" onclick="followUser(this)" id="followBtn">Following</button>
+      {% else %}
+        <button class="follow-btn" data-username="{{ profile_user.username }}" onclick="followUser(this)" id="followBtn">Follow</button>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+<!-- Profile Meta -->
+<div class="profile-meta">
+  <h2>{% if profile_user.first_name %}{{ profile_user.first_name }} {{ profile_user.last_name }}{% else %}{{ profile_user.username }}{% endif %}</h2>
+  <p class="post-handle">@{{ profile_user.username }}</p>
+  {% if profile.bio %}<p class="profile-bio">{{ profile.bio }}</p>{% endif %}
+  <div class="profile-details">
+    {% if profile.location %}<span><i class="fa-solid fa-location-dot"></i> {{ profile.location }}</span>{% endif %}
+    {% if profile.website %}<span><i class="fa-solid fa-link"></i> <a href="{{ profile.website }}" target="_blank">{{ profile.website }}</a></span>{% endif %}
+    <span><i class="fa-regular fa-calendar"></i> Joined {{ profile.created_at|date:"M Y" }}</span>
+  </div>
+  <div class="profile-follow-counts">
+    <span><strong>{{ profile.following_count }}</strong> Following</span>
+    <span><strong>{{ profile.followers_count }}</strong> Followers</span>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="profile-tabs" id="profileTabs">
+  <button class="profile-tab active" onclick="switchTab(this,'tab-posts')">Posts</button>
+  <button class="profile-tab" onclick="switchTab(this,'tab-liked')">Liked</button>
+</div>
+
+<!-- Posts Tab -->
+<div id="tab-posts">
+  {% for post in posts %}
+    {% include 'blog/post_card.html' with post=post %}
+  {% empty %}
+    <div class="empty-state">
+      <i class="fa-solid fa-feather-pointed"></i>
+      <h3>No posts yet</h3>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Liked Tab -->
+<div id="tab-liked" style="display:none;">
+  {% for post in liked_posts %}
+    {% include 'blog/post_card.html' with post=post %}
+  {% empty %}
+    <div class="empty-state">
+      <i class="fa-regular fa-heart"></i>
+      <h3>No liked posts yet</h3>
+    </div>
+  {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchTab(btn, tabId) {
+  document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#tab-posts, #tab-liked').forEach(t => t.style.display = 'none');
+  document.getElementById(tabId).style.display = 'block';
+}
+</script>
+{% endblock %}

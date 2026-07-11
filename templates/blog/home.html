@@ -1,0 +1,70 @@
+{% extends 'app_base.html' %}
+{% load static %}
+{% load blog_tags %}
+
+{% block title %}Home — Grenadye.net{% endblock %}
+
+{% block main_content %}
+<!-- Feed Header -->
+<div class="feed-header">
+  <h2>Home</h2>
+  <div class="cat-pills">
+    <a href="{% url 'home' %}" class="cat-pill {% if not request.GET.category %}active{% endif %}">All</a>
+    {% for cat in categories %}
+      <a href="?category={{ cat.slug }}" class="cat-pill" style="--cat-color:{{ cat.color }};">{{ cat.icon }} {{ cat.name }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Compose Box -->
+<div class="compose-box">
+  <div class="avatar avatar-sm">
+    {% if request.user.profile.avatar %}
+      <img src="{{ request.user.profile.avatar.url }}" alt="avatar" />
+    {% else %}
+      <span>{{ request.user.username|slice:":1"|upper }}</span>
+    {% endif %}
+  </div>
+  <form method="POST" enctype="multipart/form-data" class="compose-form" id="homeComposeForm">
+    {% csrf_token %}
+    <input type="text" name="title" placeholder="Title (optional)" class="compose-title" />
+    <textarea name="content" placeholder="What's on your mind?" class="compose-textarea"
+              oninput="updateCharCount(this,'home-char-count','home-submit-btn',2000)"
+              id="homeContent"></textarea>
+    <div id="home-img-preview" class="img-preview-wrap"></div>
+    <div class="compose-toolbar">
+      <div class="compose-tools">
+        <label class="tool-btn" title="Add image">
+          <i class="fa-regular fa-image"></i>
+          <input type="file" name="image" accept="image/*" hidden onchange="previewImage(this,'home-img-preview')" />
+        </label>
+        <select name="category" class="cat-select">
+          <option value="">📂 Category</option>
+          {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.icon }} {{ cat.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="compose-right">
+        <span class="char-count" id="home-char-count">0/2000</span>
+        <button type="submit" class="post-btn" id="home-submit-btn" disabled>Post</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="feed-divider"></div>
+
+<!-- Posts Feed -->
+<div class="post-feed" id="postFeed">
+  {% for post in posts %}
+    {% include 'blog/post_card.html' with post=post %}
+  {% empty %}
+    <div class="empty-state">
+      <i class="fa-solid fa-seedling"></i>
+      <h3>Your feed is empty</h3>
+      <p>Follow people or post something to get started!</p>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

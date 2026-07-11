@@ -1,0 +1,84 @@
+{% extends 'app_base.html' %}
+{% load blog_tags %}
+{% block title %}Explore — Grenadye.net{% endblock %}
+
+{% block main_content %}
+<div class="feed-header">
+  <h2>Explore</h2>
+</div>
+
+<!-- Search Bar -->
+<div class="explore-search">
+  <form method="GET" action="{% url 'explore' %}">
+    <div class="search-bar-lg">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" name="q" placeholder="Search posts, people…" value="{{ query }}" autofocus />
+      {% if active_category %}<input type="hidden" name="category" value="{{ active_category.slug }}" />{% endif %}
+      <button type="submit">Search</button>
+    </div>
+  </form>
+</div>
+
+<!-- Category Tabs -->
+<div class="cat-tabs">
+  <a href="{% url 'explore' %}{% if query %}?q={{ query }}{% endif %}" class="cat-tab {% if not active_category %}active{% endif %}">All</a>
+  {% for cat in categories %}
+    <a href="{% url 'explore' %}?category={{ cat.slug }}{% if query %}&q={{ query }}{% endif %}"
+       class="cat-tab {% if active_category.slug == cat.slug %}active{% endif %}"
+       style="{% if active_category.slug == cat.slug %}border-bottom-color:{{ cat.color }};color:{{ cat.color }};{% endif %}">
+      {{ cat.icon }} {{ cat.name }}
+    </a>
+  {% endfor %}
+</div>
+
+<!-- People Results -->
+{% if users and query %}
+<div class="explore-section">
+  <p class="section-label">People</p>
+  {% for u in users %}
+  <div class="user-row">
+    <a href="{% url 'profile' username=u.username %}" class="post-avatar-link">
+      <div class="avatar avatar-sm">
+        {% if u.profile.avatar %}
+          <img src="{{ u.profile.avatar.url }}" alt="avatar" />
+        {% else %}
+          <span>{{ u.username|slice:":1"|upper }}</span>
+        {% endif %}
+      </div>
+    </a>
+    <div class="user-row-info">
+      <a href="{% url 'profile' username=u.username %}">
+        <strong>{% if u.first_name %}{{ u.first_name }} {{ u.last_name }}{% else %}{{ u.username }}{% endif %}</strong>
+        <small>@{{ u.username }}</small>
+      </a>
+      {% if u.profile.bio %}<p class="user-bio">{{ u.profile.bio|truncatechars:80 }}</p>{% endif %}
+    </div>
+    <button class="follow-btn" data-username="{{ u.username }}" onclick="followUser(this)">Follow</button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Posts -->
+<div class="explore-section">
+  {% if query or active_category %}
+    <p class="section-label">
+      {% if active_category %}{{ active_category.icon }} {{ active_category.name }}{% endif %}
+      {% if query %}Results for "{{ query }}"{% endif %}
+      <span style="color:var(--muted);font-weight:400;"> · {{ posts|length }} posts</span>
+    </p>
+  {% else %}
+    <p class="section-label">Trending Posts</p>
+  {% endif %}
+
+  {% for post in posts %}
+    {% include 'blog/post_card.html' with post=post %}
+  {% empty %}
+    <div class="empty-state">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <h3>No posts found</h3>
+      <p>Try a different search or category.</p>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,210 @@
+{% extends 'app_base.html' %}
+{% load blog_tags %}
+{% block title %}{{ post.title|default:"Post" }} — Grenadye.net{% endblock %}
+
+{% block main_content %}
+<!-- Header -->
+<div class="feed-header">
+  <a href="javascript:history.back()" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+  <h2>Post</h2>
+</div>
+
+<!-- Full Post -->
+<article class="post-detail-card">
+  <div class="post-detail-top">
+    <a href="{% url 'profile' username=post.user.username %}" class="post-avatar-link">
+      <div class="avatar avatar-sm">
+        {% if post.user.profile.avatar %}
+          <img src="{{ post.user.profile.avatar.url }}" alt="avatar" />
+        {% else %}
+          <span>{{ post.user.username|slice:":1"|upper }}</span>
+        {% endif %}
+      </div>
+    </a>
+    <div class="post-detail-user">
+      <a href="{% url 'profile' username=post.user.username %}">
+        <strong>{% if post.user.first_name %}{{ post.user.first_name }} {{ post.user.last_name }}{% else %}{{ post.user.username }}{% endif %}</strong>
+        <span class="post-handle">@{{ post.user.username }}</span>
+      </a>
+    </div>
+    {% if post.category %}
+      <a href="{% url 'category_view' slug=post.category.slug %}" class="cat-badge" style="background:{{ post.category.color }}22;color:{{ post.category.color }}; margin-left:auto;">
+        {{ post.category.icon }} {{ post.category.name }}
+      </a>
+    {% endif %}
+  </div>
+
+  {% if post.title %}<h2 class="post-detail-title">{{ post.title }}</h2>{% endif %}
+  <p class="post-detail-content">{{ post.content }}</p>
+
+  {% if post.image %}
+  <div class="post-image" style="margin-top:12px;">
+    <img src="{{ post.image.url }}" alt="post image" />
+  </div>
+  {% endif %}
+
+  <div class="post-detail-time">{{ post.created_at|date:"g:i A · M j, Y" }}</div>
+
+  <div class="post-detail-stats">
+    <span><strong>{{ post|comments_count }}</strong> Comments</span>
+    <span><strong>{{ post|post_likes_count }}</strong> Likes</span>
+  </div>
+
+  <div class="post-detail-actions">
+    <button class="action-btn like-btn {% if post|is_liked_by:request.user %}liked{% endif %}"
+            onclick="likePost({{ post.pk }}, this)">
+      <i class="fa-{% if post|is_liked_by:request.user %}solid{% else %}regular{% endif %} fa-heart"></i>
+      <span>Like</span>
+    </button>
+    <button class="action-btn share-btn" onclick="sharePost({{ post.pk }})">
+      <i class="fa-solid fa-arrow-up-from-bracket"></i>
+      <span>Share</span>
+    </button>
+    {% if post.user == request.user %}
+    <button class="action-btn delete-btn" onclick="deletePost({{ post.pk }}, this)">
+      <i class="fa-solid fa-trash"></i>
+      <span>Delete</span>
+    </button>
+    {% endif %}
+  </div>
+</article>
+
+<div class="feed-divider"></div>
+
+<!-- Add Comment -->
+<div class="comment-compose">
+  <div class="avatar avatar-sm">
+    {% if request.user.profile.avatar %}
+      <img src="{{ request.user.profile.avatar.url }}" alt="avatar" />
+    {% else %}
+      <span>{{ request.user.username|slice:":1"|upper }}</span>
+    {% endif %}
+  </div>
+  <form method="POST" action="{% url 'add_comment' pk=post.pk %}" class="comment-form" id="mainCommentForm">
+    {% csrf_token %}
+    <input type="hidden" name="parent_id" value="" />
+    <textarea name="content" placeholder="Write a comment…" class="comment-textarea"
+              oninput="updateCharCount(this,'comment-char-count','comment-submit-btn',500)"></textarea>
+    <div class="comment-form-footer">
+      <span class="char-count" id="comment-char-count">0/500</span>
+      <button type="submit" class="post-btn sm" id="comment-submit-btn" disabled>Reply</button>
+    </div>
+  </form>
+</div>
+
+<div class="feed-divider"></div>
+
+<!-- Comments -->
+<div class="comments-section">
+  <p class="section-label">{{ post|comments_count }} Comment{{ post|comments_count|pluralize }}</p>
+
+  {% for comment in comments %}
+  <div class="comment-thread" id="comment-{{ comment.pk }}">
+    <!-- Top-level comment -->
+    <div class="comment-card">
+      <a href="{% url 'profile' username=comment.user.username %}" class="post-avatar-link">
+        <div class="avatar avatar-xs">
+          {% if comment.user.profile.avatar %}
+            <img src="{{ comment.user.profile.avatar.url }}" alt="avatar" />
+          {% else %}
+            <span>{{ comment.user.username|slice:":1"|upper }}</span>
+          {% endif %}
+        </div>
+      </a>
+      <div class="comment-body">
+        <div class="comment-meta">
+          <a href="{% url 'profile' username=comment.user.username %}" class="comment-author">
+            <strong>{% if comment.user.first_name %}{{ comment.user.first_name }}{% else %}{{ comment.user.username }}{% endif %}</strong>
+            <span class="post-handle">@{{ comment.user.username }}</span>
+          </a>
+          <span class="post-dot">·</span>
+          <span class="post-time">{{ comment.created_at|timesince }} ago</span>
+        </div>
+        <p class="comment-text">{{ comment.content }}</p>
+        <div class="comment-actions">
+          <button class="action-btn like-btn {% if comment|is_liked_by:request.user %}liked{% endif %}"
+                  onclick="likeComment({{ comment.pk }}, this)">
+            <i class="fa-{% if comment|is_liked_by:request.user %}solid{% else %}regular{% endif %} fa-heart"></i>
+            <span>{{ comment|comment_likes_count }}</span>
+          </button>
+          <button class="action-btn reply-toggle-btn" onclick="toggleReplyForm({{ comment.pk }})">
+            <i class="fa-regular fa-comment"></i>
+            <span>Reply</span>
+          </button>
+        </div>
+
+        <!-- Reply form (hidden by default) -->
+        <div class="reply-form-wrap" id="reply-form-{{ comment.pk }}" style="display:none;">
+          <form method="POST" action="{% url 'add_comment' pk=post.pk %}" class="comment-form">
+            {% csrf_token %}
+            <input type="hidden" name="parent_id" value="{{ comment.pk }}" />
+            <textarea name="content" placeholder="Write a reply…" class="comment-textarea sm"
+                      oninput="this.closest('form').querySelector('.post-btn').disabled = this.value.length === 0"></textarea>
+            <div class="comment-form-footer">
+              <button type="button" onclick="toggleReplyForm({{ comment.pk }})">Cancel</button>
+              <button type="submit" class="post-btn sm" disabled>Reply</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Nested Replies -->
+        {% if comment.replies.all %}
+        <div class="replies-list">
+          {% for reply in comment.replies.all %}
+          <div class="comment-card reply-card" id="comment-{{ reply.pk }}">
+            <a href="{% url 'profile' username=reply.user.username %}" class="post-avatar-link">
+              <div class="avatar avatar-xs">
+                {% if reply.user.profile.avatar %}
+                  <img src="{{ reply.user.profile.avatar.url }}" alt="avatar" />
+                {% else %}
+                  <span>{{ reply.user.username|slice:":1"|upper }}</span>
+                {% endif %}
+              </div>
+            </a>
+            <div class="comment-body">
+              <div class="comment-meta">
+                <a href="{% url 'profile' username=reply.user.username %}" class="comment-author">
+                  <strong>{% if reply.user.first_name %}{{ reply.user.first_name }}{% else %}{{ reply.user.username }}{% endif %}</strong>
+                  <span class="post-handle">@{{ reply.user.username }}</span>
+                </a>
+                <span class="post-dot">·</span>
+                <span class="post-time">{{ reply.created_at|timesince }} ago</span>
+              </div>
+              <p class="comment-text">{{ reply.content }}</p>
+              <div class="comment-actions">
+                <button class="action-btn like-btn {% if reply|is_liked_by:request.user %}liked{% endif %}"
+                        onclick="likeComment({{ reply.pk }}, this)">
+                  <i class="fa-{% if reply|is_liked_by:request.user %}solid{% else %}regular{% endif %} fa-heart"></i>
+                  <span>{{ reply|comment_likes_count }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="empty-state sm">
+    <i class="fa-regular fa-comment-dots"></i>
+    <p>No comments yet — be the first!</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleReplyForm(commentId) {
+  const form = document.getElementById('reply-form-' + commentId);
+  if (form.style.display === 'none') {
+    form.style.display = 'block';
+    form.querySelector('textarea').focus();
+  } else {
+    form.style.display = 'none';
+  }
+}
+</script>
+{% endblock %}

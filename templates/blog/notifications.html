@@ -1,0 +1,61 @@
+{% extends 'app_base.html' %}
+{% block title %}Notifications — Grenadye.net{% endblock %}
+
+{% block main_content %}
+<div class="feed-header">
+  <h2>Notifications</h2>
+</div>
+
+{% for notif in notifications %}
+<div class="notif-item {% if not notif.is_read %}unread{% endif %}">
+  <div class="notif-icon-wrap
+    {% if notif.notif_type == 'like' %}notif-like
+    {% elif notif.notif_type == 'comment' or notif.notif_type == 'reply' %}notif-comment
+    {% elif notif.notif_type == 'follow' %}notif-follow
+    {% endif %}">
+    {% if notif.notif_type == 'like' %}
+      <i class="fa-solid fa-heart"></i>
+    {% elif notif.notif_type == 'comment' %}
+      <i class="fa-solid fa-comment"></i>
+    {% elif notif.notif_type == 'reply' %}
+      <i class="fa-solid fa-reply"></i>
+    {% elif notif.notif_type == 'follow' %}
+      <i class="fa-solid fa-user-plus"></i>
+    {% endif %}
+  </div>
+
+  <div class="notif-body">
+    <a href="{% url 'profile' username=notif.sender.username %}">
+      <div class="avatar avatar-xs notif-avatar">
+        {% if notif.sender.profile.avatar %}
+          <img src="{{ notif.sender.profile.avatar.url }}" alt="avatar" />
+        {% else %}
+          <span>{{ notif.sender.username|slice:":1"|upper }}</span>
+        {% endif %}
+      </div>
+    </a>
+    <div class="notif-text">
+      <p>
+        <a href="{% url 'profile' username=notif.sender.username %}">
+          <strong>{% if notif.sender.first_name %}{{ notif.sender.first_name }}{% else %}{{ notif.sender.username }}{% endif %}</strong>
+        </a>
+        {% if notif.notif_type == 'like' %}liked your post{% endif %}
+        {% if notif.notif_type == 'comment' %}commented on your post{% endif %}
+        {% if notif.notif_type == 'reply' %}replied to your comment{% endif %}
+        {% if notif.notif_type == 'follow' %}started following you{% endif %}
+        {% if notif.post %}
+          — <a href="{% url 'post_detail' pk=notif.post.pk %}" class="notif-post-link">{{ notif.post.title|default:notif.post.content|truncatechars:40 }}</a>
+        {% endif %}
+      </p>
+      <small>{{ notif.created_at|timesince }} ago</small>
+    </div>
+  </div>
+</div>
+{% empty %}
+<div class="empty-state" style="padding-top:60px;">
+  <i class="fa-solid fa-bell-slash"></i>
+  <h3>No notifications yet</h3>
+  <p>When someone likes, comments or follows you, it'll appear here.</p>
+</div>
+{% endfor %}
+{% endblock %}

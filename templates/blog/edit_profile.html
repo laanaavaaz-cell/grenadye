@@ -1,0 +1,125 @@
+{% extends 'app_base.html' %}
+{% block title %}Edit Profile — Grenadye.net{% endblock %}
+
+{% block main_content %}
+<div class="feed-header">
+  <a href="{% url 'profile' username=request.user.username %}" class="back-btn">
+    <i class="fa-solid fa-arrow-left"></i>
+  </a>
+  <h2>Edit profile</h2>
+  <button type="submit" form="editProfileForm" class="post-btn">Save</button>
+</div>
+
+<form method="POST" enctype="multipart/form-data" id="editProfileForm" novalidate>
+  {% csrf_token %}
+
+  <!-- ── Header image ── -->
+  <div class="edit-header-img" id="headerPreviewWrap">
+    {% if form.instance.header_image %}
+      <img src="{{ form.instance.header_image.url }}" alt="header"
+           style="width:100%;height:100%;object-fit:cover;" />
+    {% else %}
+      <div class="header-placeholder"></div>
+    {% endif %}
+    <label for="id_header_image" class="edit-overlay-btn" title="Change header">
+      <i class="fa-solid fa-camera"></i>
+    </label>
+    <input type="file" name="header_image" id="id_header_image" accept="image/*" hidden
+           onchange="previewImage(this,'headerPreviewWrap',true)" />
+  </div>
+
+  <!-- ── Avatar ── -->
+  <div style="padding:0 16px;position:relative;display:inline-block;margin-top:-38px;margin-left:16px;">
+    <div class="avatar avatar-lg edit-avatar" id="avatarPreviewWrap">
+      {% if form.instance.avatar %}
+        <img src="{{ form.instance.avatar.url }}" alt="avatar" />
+      {% else %}
+        <span>{{ request.user.username|slice:":1"|upper }}</span>
+      {% endif %}
+    </div>
+    <label for="id_avatar" class="edit-overlay-btn sm" title="Change avatar">
+      <i class="fa-solid fa-camera"></i>
+    </label>
+    <input type="file" name="avatar" id="id_avatar" accept="image/*" hidden
+           onchange="previewImage(this,'avatarPreviewWrap',true)" />
+  </div>
+
+  <!-- ── Text fields ── -->
+  <div class="edit-fields">
+
+    <!-- First name — value sourced from form.first_name.value (includes POST data on error) -->
+    <div class="float-field">
+      <input type="text"
+             name="first_name"
+             id="id_first_name"
+             value="{{ form.first_name.value|default:'' }}"
+             placeholder=" "
+             class="float-input{% if form.first_name.errors %} input-error{% endif %}"
+             maxlength="30" />
+      <label for="id_first_name">First name</label>
+      {% if form.first_name.errors %}
+        <span class="field-error">{{ form.first_name.errors|join:", " }}</span>
+      {% endif %}
+    </div>
+
+    <!-- Last name -->
+    <div class="float-field">
+      <input type="text"
+             name="last_name"
+             id="id_last_name"
+             value="{{ form.last_name.value|default:'' }}"
+             placeholder=" "
+             class="float-input{% if form.last_name.errors %} input-error{% endif %}"
+             maxlength="30" />
+      <label for="id_last_name">Last name</label>
+      {% if form.last_name.errors %}
+        <span class="field-error">{{ form.last_name.errors|join:", " }}</span>
+      {% endif %}
+    </div>
+
+    <!-- Bio -->
+    <div class="float-field">
+      <textarea name="bio"
+                id="id_bio"
+                maxlength="160"
+                placeholder=" "
+                class="float-input{% if form.bio.errors %} input-error{% endif %}"
+                style="min-height:90px;">{{ form.bio.value|default:'' }}</textarea>
+      <label for="id_bio">Bio <small style="color:var(--muted);">(160 chars)</small></label>
+      {% if form.bio.errors %}
+        <span class="field-error">{{ form.bio.errors|join:", " }}</span>
+      {% endif %}
+    </div>
+
+    <!-- Location -->
+    <div class="float-field">
+      <input type="text"
+             name="location"
+             id="id_location"
+             value="{{ form.location.value|default:'' }}"
+             placeholder=" "
+             class="float-input{% if form.location.errors %} input-error{% endif %}"
+             maxlength="60" />
+      <label for="id_location">Location</label>
+      {% if form.location.errors %}
+        <span class="field-error">{{ form.location.errors|join:", " }}</span>
+      {% endif %}
+    </div>
+
+    <!-- Website -->
+    <div class="float-field">
+      <input type="url"
+             name="website"
+             id="id_website"
+             value="{{ form.website.value|default:'' }}"
+             placeholder=" "
+             class="float-input{% if form.website.errors %} input-error{% endif %}" />
+      <label for="id_website">Website</label>
+      {% if form.website.errors %}
+        <span class="field-error">{{ form.website.errors|join:", " }}</span>
+      {% endif %}
+    </div>
+
+  </div><!-- /edit-fields -->
+</form>
+{% endblock %}

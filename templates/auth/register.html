@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Create Account — Grenadye.net{% endblock %}
+{% block body %}
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-brand">
+      <span class="auth-logo-g">G</span>
+      <span class="auth-logo-text">renadye.net</span>
+    </div>
+    <h1>Join the<br/>community<br/>today.</h1>
+    <p>Connect with people. Share stories. Build your audience.</p>
+  </div>
+  <div class="auth-right">
+    <div class="auth-form-card">
+      <div class="auth-brand-sm">
+        <span class="auth-logo-g">G</span>
+        <span>renadye.net</span>
+      </div>
+      <h2>Create account</h2>
+
+      {% if form.non_field_errors %}
+        <div class="auth-error">{{ form.non_field_errors|join:", " }}</div>
+      {% endif %}
+
+      <form method="POST" class="auth-form">
+        {% csrf_token %}
+        <div class="field-wrap">
+          <i class="fa-solid fa-user-pen field-icon"></i>
+          <input type="text" name="full_name" placeholder="Full name" class="auth-input {% if form.full_name.errors %}error{% endif %}" />
+        </div>
+        {% if form.full_name.errors %}<span class="field-error">{{ form.full_name.errors|join:", " }}</span>{% endif %}
+
+        <div class="field-wrap">
+          <i class="fa-solid fa-at field-icon"></i>
+          <input type="text" name="username" placeholder="Username" class="auth-input {% if form.username.errors %}error{% endif %}" />
+        </div>
+        {% if form.username.errors %}<span class="field-error">{{ form.username.errors|join:", " }}</span>{% endif %}
+
+        <div class="field-wrap">
+          <i class="fa-solid fa-envelope field-icon"></i>
+          <input type="email" name="email" placeholder="Email address" class="auth-input {% if form.email.errors %}error{% endif %}" />
+        </div>
+        {% if form.email.errors %}<span class="field-error">{{ form.email.errors|join:", " }}</span>{% endif %}
+
+        <div class="field-wrap">
+          <i class="fa-solid fa-lock field-icon"></i>
+          <input type="password" name="password1" placeholder="Password" class="auth-input {% if form.password1.errors %}error{% endif %}" />
+        </div>
+        {% if form.password1.errors %}<span class="field-error">{{ form.password1.errors|join:", " }}</span>{% endif %}
+
+        <div class="field-wrap">
+          <i class="fa-solid fa-lock field-icon"></i>
+          <input type="password" name="password2" placeholder="Confirm password" class="auth-input {% if form.password2.errors %}error{% endif %}" />
+        </div>
+        {% if form.password2.errors %}<span class="field-error">{{ form.password2.errors|join:", " }}</span>{% endif %}
+
+        <button type="submit" class="auth-btn primary">Create account</button>
+      </form>
+
+      <div class="auth-divider"><span>Already have an account?</span></div>
+      <a href="{% url 'login' %}" class="auth-btn outline">Sign in</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

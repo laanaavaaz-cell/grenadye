@@ -1,0 +1,79 @@
+{% load blog_tags %}
+{% load static %}
+<article class="post-card" data-post-id="{{ post.pk }}">
+  <!-- Avatar -->
+  <a href="{% url 'profile' username=post.user.username %}" class="post-avatar-link">
+    <div class="avatar avatar-sm">
+      {% if post.user.profile.avatar %}
+        <img src="{{ post.user.profile.avatar.url }}" alt="avatar" />
+      {% else %}
+        <span>{{ post.user.username|slice:":1"|upper }}</span>
+      {% endif %}
+    </div>
+  </a>
+
+  <!-- Body -->
+  <div class="post-body">
+    <!-- Header row -->
+    <div class="post-meta-row">
+      <a href="{% url 'profile' username=post.user.username %}" class="post-author">
+        <strong>{% if post.user.first_name %}{{ post.user.first_name }} {{ post.user.last_name }}{% else %}{{ post.user.username }}{% endif %}</strong>
+        <span class="post-handle">@{{ post.user.username }}</span>
+      </a>
+      <span class="post-dot">·</span>
+      <span class="post-time">{{ post.created_at|timesince }} ago</span>
+      {% if post.category %}
+        <a href="{% url 'category_view' slug=post.category.slug %}" class="cat-badge" style="background:{{ post.category.color }}22;color:{{ post.category.color }};" onclick="event.stopPropagation();">
+          {{ post.category.icon }} {{ post.category.name }}
+        </a>
+      {% endif %}
+      <!-- Menu (own posts) -->
+      {% if post.user == request.user %}
+      <div class="post-menu-wrap">
+        <button class="post-menu-btn" onclick="toggleMenu(this)"><i class="fa-solid fa-ellipsis"></i></button>
+        <div class="post-menu hidden">
+          <button onclick="deletePost({{ post.pk }}, this)"><i class="fa-solid fa-trash"></i> Delete</button>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Title -->
+    {% if post.title %}
+      <a href="{% url 'post_detail' pk=post.pk %}" class="post-title">{{ post.title }}</a>
+    {% endif %}
+
+    <!-- Content -->
+    <a href="{% url 'post_detail' pk=post.pk %}" class="post-content-link">
+      <p class="post-content">{{ post.content|truncatechars:280 }}</p>
+    </a>
+
+    <!-- Image -->
+    {% if post.image %}
+    <a href="{% url 'post_detail' pk=post.pk %}">
+      <div class="post-image">
+        <img src="{{ post.image.url }}" alt="post image" loading="lazy" />
+      </div>
+    </a>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="post-actions">
+      <a href="{% url 'post_detail' pk=post.pk %}" class="action-btn comment-btn">
+        <i class="fa-regular fa-comment"></i>
+        <span>{{ post|comments_count }}</span>
+      </a>
+
+      <button class="action-btn like-btn {% if post|is_liked_by:request.user %}liked{% endif %}"
+              data-post-id="{{ post.pk }}"
+              onclick="likePost({{ post.pk }}, this)">
+        <i class="fa-{% if post|is_liked_by:request.user %}solid{% else %}regular{% endif %} fa-heart"></i>
+        <span>{{ post|post_likes_count }}</span>
+      </button>
+
+      <button class="action-btn share-btn" onclick="sharePost({{ post.pk }})">
+        <i class="fa-solid fa-arrow-up-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</article>

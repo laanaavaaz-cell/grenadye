@@ -1,0 +1,36 @@
+{% extends 'app_base.html' %}
+{% load blog_tags %}
+{% block title %}{{ category.icon }} {{ category.name }} — Grenadye.net{% endblock %}
+
+{% block main_content %}
+<div class="feed-header">
+  <a href="{% url 'explore' %}" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+  <h2>{{ category.icon }} {{ category.name }}</h2>
+</div>
+
+<div class="category-hero" style="border-bottom:3px solid {{ category.color }}; background:{{ category.color }}11;">
+  <span class="category-hero-icon">{{ category.icon }}</span>
+  <div>
+    <h2 style="color:{{ category.color }};">{{ category.name }}</h2>
+    <p style="color:var(--muted);">{{ posts|length }} post{{ posts|length|pluralize }}</p>
+  </div>
+</div>
+
+<!-- Category filter pills -->
+<div class="cat-pills" style="padding:8px 16px; border-bottom:1px solid var(--border);">
+  <a href="{% url 'explore' %}" class="cat-pill">All categories</a>
+  {% for cat in categories %}
+    <a href="{% url 'category_view' slug=cat.slug %}" class="cat-pill {% if cat.slug == category.slug %}active{% endif %}" style="--cat-color:{{ cat.color }};">{{ cat.icon }} {{ cat.name }}</a>
+  {% endfor %}
+</div>
+
+{% for post in posts %}
+  {% include 'blog/post_card.html' with post=post %}
+{% empty %}
+  <div class="empty-state">
+    <span style="font-size:3rem;">{{ category.icon }}</span>
+    <h3>No posts in {{ category.name }} yet</h3>
+    <p>Be the first to post in this category!</p>
+  </div>
+{% endfor %}
+{% endblock %}
