@@ -1,12 +1,15 @@
 import os
+import dj_database_url
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'grenadye-net-secret-key-2026-xk9mq'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+# ── Security ─────────────────────────────────────────────────
+SECRET_KEY = os.environ.get('SECRET_KEY', 'grenadye-net-secret-key-2026-xk9mq')
+DEBUG = os.environ.get('DEBUG', 'true').lower() == 'true'
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
+# ── Apps ──────────────────────────────────────────────────────
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -17,8 +20,10 @@ INSTALLED_APPS = [
     'blog',
 ]
 
+# ── Middleware ────────────────────────────────────────────────
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',          # static files in prod
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -47,27 +52,38 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'grenadye.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# ── Database ──────────────────────────────────────────────────
+# Locally: SQLite. In production: set DATABASE_URL env var (Postgres).
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    DATABASES = {'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
 
-AUTH_PASSWORD_VALIDATORS = []
+# ── Password validation ───────────────────────────────────────
+AUTH_PASSWORD_VALIDATORS = []   # relax for demo; tighten for production
 
+# ── Internationalisation ──────────────────────────────────────
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
+TIME_ZONE     = 'UTC'
+USE_I18N      = True
+USE_TZ        = True
 
-STATIC_URL = '/static/'
+# ── Static & media files ──────────────────────────────────────
+STATIC_URL  = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'          # collectstatic output for prod
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_ROOT = BASE_DIR / 'media'
-MEDIA_URL = '/media/'
+MEDIA_URL  = '/media/'
 
+# ── Misc ──────────────────────────────────────────────────────
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-LOGIN_URL = '/login/'
+LOGIN_URL          = '/login/'
 LOGIN_REDIRECT_URL = '/'
