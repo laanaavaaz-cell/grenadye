@@ -1102,5 +1102,8 @@ textarea { resize: none; }
 /* ─── SHOW TOP NAVBAR ON MOBILE ONLY ────────────────────────── */
 @media (max-width: 700px) {
   .top-navbar { display: flex; }
-  .main-feed  { padding-top: 56px; }  /* offset for fixed navbar */
+  /* Push the entire app-wrapper down so nothing hides under the fixed navbar */
+  .app-wrapper { padding-top: 56px; }
+  /* Sticky feed-header must account for the 56px fixed navbar */
+  .feed-header { top: 56px; }
 }
