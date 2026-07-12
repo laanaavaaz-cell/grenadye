@@ -167,15 +167,19 @@ def profile_view(request, username):
 @login_required
 def edit_profile_view(request):
     ctx = _common_context(request)
+    # Always refresh from DB so the cached in-memory profile object
+    # never shows stale image URLs (fixes header image disappearing after save).
     profile = request.user.profile
+    profile.refresh_from_db()
     if request.method == 'POST':
         form = ProfileEditForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
-            form.save()
+            saved_profile = form.save()
+            saved_profile.refresh_from_db()
             return redirect('profile', username=request.user.username)
     else:
         form = ProfileEditForm(instance=profile)
-    ctx.update({'form': form})
+    ctx.update({'form': form, 'profile_obj': profile})
     return render(request, 'blog/edit_profile.html', ctx)
 
 

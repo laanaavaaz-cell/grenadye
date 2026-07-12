@@ -969,3 +969,138 @@ textarea { resize: none; }
 }
 
 .input-error { border-color: var(--danger) !important; }
+
+/* ─── TOP NAVBAR ─────────────────────────────────────────────── */
+.top-navbar {
+  display: none; /* desktop: hidden — sidebar handles nav */
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 56px;
+  background: rgba(0,0,0,.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border);
+  z-index: 150;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+.topnav-logo {
+  display: flex; align-items: center; gap: 9px;
+}
+.topnav-logo .logo-g { width: 32px; height: 32px; font-size: 1rem; }
+.topnav-logo .logo-text { font-size: 1rem; font-weight: 700; }
+
+/* Hamburger button */
+.topnav-menu-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 5px;
+  background: none; border: none; cursor: pointer;
+  padding: 0;
+  transition: background .2s;
+}
+.topnav-menu-btn:hover { background: rgba(255,255,255,.1); }
+.topnav-menu-btn span {
+  display: block;
+  width: 20px; height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: transform .25s, opacity .25s;
+}
+
+/* ─── FULLSCREEN MENU OVERLAY ────────────────────────────────── */
+.fullmenu-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 300;
+  flex-direction: column;
+  padding: 0;
+  overflow-y: auto;
+  animation: menuSlideIn .28s cubic-bezier(.4,0,.2,1);
+}
+.fullmenu-overlay.open { display: flex; }
+
+@keyframes menuSlideIn {
+  from { opacity: 0; transform: translateY(-18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Menu header */
+.fullmenu-header {
+  padding: 16px 20px 24px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.fullmenu-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; color: var(--muted);
+  transition: background .2s, color .2s;
+}
+.fullmenu-close:hover { background: rgba(255,255,255,.1); color: var(--text); }
+
+.fullmenu-brand {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 8px;
+}
+.logo-g-lg {
+  width: 52px; height: 52px; font-size: 1.5rem; flex-shrink: 0;
+}
+.fullmenu-title {
+  font-size: 1.5rem; font-weight: 800;
+  color: var(--text); line-height: 1.1;
+}
+.fullmenu-subtitle {
+  font-size: .88rem; color: var(--muted);
+  margin-top: 3px;
+}
+
+/* Section labels */
+.fullmenu-section-label {
+  font-size: .72rem; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 20px 20px 8px;
+}
+
+/* Menu rows — 3-column grid of buttons */
+.fullmenu-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 0 16px 8px;
+}
+
+.fullmenu-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px;
+  padding: 20px 8px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: .82rem; font-weight: 600;
+  text-align: center;
+  transition: background .18s, border-color .18s, color .18s;
+  cursor: pointer;
+}
+.fullmenu-btn i { font-size: 1.35rem; color: var(--primary); }
+.fullmenu-btn:hover { background: rgba(29,155,240,.1); border-color: var(--primary); }
+.fullmenu-btn.active {
+  background: rgba(29,155,240,.15);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.fullmenu-btn.active i { color: var(--primary); }
+.fullmenu-btn-danger i { color: var(--danger) !important; }
+.fullmenu-btn-danger:hover { background: rgba(255,68,68,.1) !important; border-color: var(--danger) !important; }
+.fullmenu-btn-ghost { pointer-events: none; opacity: .45; }
+.fullmenu-btn-ghost i { color: var(--muted); }
+
+/* ─── SHOW TOP NAVBAR ON MOBILE ONLY ────────────────────────── */
+@media (max-width: 700px) {
+  .top-navbar { display: flex; }
+  .main-feed  { padding-top: 56px; }  /* offset for fixed navbar */
+}

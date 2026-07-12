@@ -4,6 +4,85 @@
 {% block body %}
 <div class="app-wrapper">
 
+  <!-- ── TOP NAVBAR ── -->
+  <header class="top-navbar">
+    <a href="{% url 'home' %}" class="topnav-logo">
+      <span class="logo-g">G</span>
+      <span class="logo-text">renadye</span>
+    </a>
+    <button class="topnav-menu-btn" onclick="openFullMenu()" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <!-- ── FULLSCREEN MENU OVERLAY ── -->
+  <div class="fullmenu-overlay" id="fullMenuOverlay">
+    <!-- Header section -->
+    <div class="fullmenu-header">
+      <button class="fullmenu-close" onclick="closeFullMenu()" aria-label="Close menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="fullmenu-brand">
+        <span class="logo-g logo-g-lg">G</span>
+        <div>
+          <div class="fullmenu-title">Grenadye</div>
+          <div class="fullmenu-subtitle">Your social space — explore, connect, post</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 1: Main navigation -->
+    <div class="fullmenu-section-label">Navigation</div>
+    <div class="fullmenu-row">
+      <a href="{% url 'home' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'home' %}active{% endif %}" onclick="closeFullMenu()">
+        <i class="fa-solid fa-house"></i>
+        <span>Home</span>
+      </a>
+      <a href="{% url 'explore' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'explore' or request.resolver_match.url_name == 'category_view' %}active{% endif %}" onclick="closeFullMenu()">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span>Explore</span>
+      </a>
+      <a href="{% url 'notifications' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}" onclick="closeFullMenu()">
+        <i class="fa-solid fa-bell"></i>
+        <span>Notifications</span>
+      </a>
+    </div>
+
+    <!-- Row 2: Account -->
+    <div class="fullmenu-section-label">Account</div>
+    <div class="fullmenu-row">
+      <a href="{% url 'profile' username=request.user.username %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'profile' and request.resolver_match.kwargs.username == request.user.username %}active{% endif %}" onclick="closeFullMenu()">
+        <i class="fa-solid fa-user"></i>
+        <span>Profile</span>
+      </a>
+      <a href="{% url 'edit_profile' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'edit_profile' %}active{% endif %}" onclick="closeFullMenu()">
+        <i class="fa-solid fa-pen-to-square"></i>
+        <span>Edit Profile</span>
+      </a>
+      <button class="fullmenu-btn" onclick="openPostModal(); closeFullMenu();">
+        <i class="fa-solid fa-plus"></i>
+        <span>New Post</span>
+      </button>
+    </div>
+
+    <!-- Row 3: Settings & more -->
+    <div class="fullmenu-section-label">More</div>
+    <div class="fullmenu-row">
+      <a href="{% url 'explore' %}" class="fullmenu-btn" onclick="closeFullMenu()">
+        <i class="fa-solid fa-fire"></i>
+        <span>Trending</span>
+      </a>
+      <a href="{% url 'logout' %}" class="fullmenu-btn fullmenu-btn-danger">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Logout</span>
+      </a>
+      <div class="fullmenu-btn fullmenu-btn-ghost">
+        <i class="fa-regular fa-copyright"></i>
+        <span>© 2026 Grenadye</span>
+      </div>
+    </div>
+  </div>
+
   <!-- ── LEFT SIDEBAR ── -->
   <aside class="sidebar">
     <div class="sidebar-inner">
@@ -174,5 +253,21 @@
     </form>
   </div>
 </div>
+
+<script>
+  // ── Full-screen menu ──────────────────────────────────────
+  function openFullMenu() {
+    document.getElementById('fullMenuOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeFullMenu() {
+    document.getElementById('fullMenuOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  // Close on ESC
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeFullMenu();
+  });
+</script>
 
 {% endblock %}

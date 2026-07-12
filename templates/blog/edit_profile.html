@@ -15,24 +15,26 @@
 
   <!-- ── Header image ── -->
   <div class="edit-header-img" id="headerPreviewWrap">
-    {% if form.instance.header_image %}
-      <img src="{{ form.instance.header_image.url }}" alt="header"
+    {# Use profile_obj (refreshed from DB) — never stale after save #}
+    {% if profile_obj.header_image %}
+      <img src="{{ profile_obj.header_image.url }}" alt="header"
+           id="headerImgTag"
            style="width:100%;height:100%;object-fit:cover;" />
     {% else %}
-      <div class="header-placeholder"></div>
+      <div class="header-placeholder" id="headerPlaceholder"></div>
     {% endif %}
     <label for="id_header_image" class="edit-overlay-btn" title="Change header">
       <i class="fa-solid fa-camera"></i>
     </label>
     <input type="file" name="header_image" id="id_header_image" accept="image/*" hidden
-           onchange="previewImage(this,'headerPreviewWrap',true)" />
+           onchange="previewHeaderImage(this)" />
   </div>
 
   <!-- ── Avatar ── -->
   <div style="padding:0 16px;position:relative;display:inline-block;margin-top:-38px;margin-left:16px;">
     <div class="avatar avatar-lg edit-avatar" id="avatarPreviewWrap">
-      {% if form.instance.avatar %}
-        <img src="{{ form.instance.avatar.url }}" alt="avatar" />
+      {% if profile_obj.avatar %}
+        <img src="{{ profile_obj.avatar.url }}" alt="avatar" />
       {% else %}
         <span>{{ request.user.username|slice:":1"|upper }}</span>
       {% endif %}
@@ -47,11 +49,9 @@
   <!-- ── Text fields ── -->
   <div class="edit-fields">
 
-    <!-- First name — value sourced from form.first_name.value (includes POST data on error) -->
     <div class="float-field">
       <input type="text"
-             name="first_name"
-             id="id_first_name"
+             name="first_name" id="id_first_name"
              value="{{ form.first_name.value|default:'' }}"
              placeholder=" "
              class="float-input{% if form.first_name.errors %} input-error{% endif %}"
@@ -62,11 +62,9 @@
       {% endif %}
     </div>
 
-    <!-- Last name -->
     <div class="float-field">
       <input type="text"
-             name="last_name"
-             id="id_last_name"
+             name="last_name" id="id_last_name"
              value="{{ form.last_name.value|default:'' }}"
              placeholder=" "
              class="float-input{% if form.last_name.errors %} input-error{% endif %}"
@@ -77,12 +75,9 @@
       {% endif %}
     </div>
 
-    <!-- Bio -->
     <div class="float-field">
-      <textarea name="bio"
-                id="id_bio"
-                maxlength="160"
-                placeholder=" "
+      <textarea name="bio" id="id_bio"
+                maxlength="160" placeholder=" "
                 class="float-input{% if form.bio.errors %} input-error{% endif %}"
                 style="min-height:90px;">{{ form.bio.value|default:'' }}</textarea>
       <label for="id_bio">Bio <small style="color:var(--muted);">(160 chars)</small></label>
@@ -91,11 +86,9 @@
       {% endif %}
     </div>
 
-    <!-- Location -->
     <div class="float-field">
       <input type="text"
-             name="location"
-             id="id_location"
+             name="location" id="id_location"
              value="{{ form.location.value|default:'' }}"
              placeholder=" "
              class="float-input{% if form.location.errors %} input-error{% endif %}"
@@ -106,11 +99,9 @@
       {% endif %}
     </div>
 
-    <!-- Website -->
     <div class="float-field">
       <input type="url"
-             name="website"
-             id="id_website"
+             name="website" id="id_website"
              value="{{ form.website.value|default:'' }}"
              placeholder=" "
              class="float-input{% if form.website.errors %} input-error{% endif %}" />
@@ -120,6 +111,32 @@
       {% endif %}
     </div>
 
-  </div><!-- /edit-fields -->
+  </div>
 </form>
+
+<script>
+// Dedicated header-image preview that handles both new upload and existing img tag
+function previewHeaderImage(input) {
+  if (!input.files || !input.files[0]) return;
+  const url = URL.createObjectURL(input.files[0]);
+  const wrap = document.getElementById('headerPreviewWrap');
+
+  // Remove placeholder if present
+  const placeholder = document.getElementById('headerPlaceholder');
+  if (placeholder) placeholder.remove();
+
+  // Reuse or create the img tag
+  let img = document.getElementById('headerImgTag');
+  if (!img) {
+    img = document.createElement('img');
+    img.id = 'headerImgTag';
+    img.alt = 'header';
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+    // Insert before the label so it stays behind the camera button
+    const label = wrap.querySelector('label');
+    wrap.insertBefore(img, label);
+  }
+  img.src = url;
+}
+</script>
 {% endblock %}
