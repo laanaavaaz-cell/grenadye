@@ -205,3 +205,23 @@ document.addEventListener('input', e => {
     e.target.style.height = e.target.scrollHeight + 'px';
   }
 });
+
+// ─── CATEGORY DROPDOWN (feed-header) ─────────────────────────
+function toggleCatDrop() {
+  const btn  = document.getElementById('catDropBtn');
+  const menu = document.getElementById('catDropMenu');
+  if (!btn || !menu) return;
+  const isOpen = menu.classList.toggle('open');
+  btn.setAttribute('aria-expanded', isOpen);
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const wrap = document.querySelector('.cat-dropdown-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const menu = document.getElementById('catDropMenu');
+    const btn  = document.getElementById('catDropBtn');
+    if (menu) menu.classList.remove('open');
+    if (btn)  btn.setAttribute('aria-expanded', 'false');
+  }
+});

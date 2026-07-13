@@ -8,11 +8,24 @@
 <!-- Feed Header -->
 <div class="feed-header">
   <h2>Home</h2>
-  <div class="cat-pills">
-    <a href="{% url 'home' %}" class="cat-pill {% if not request.GET.category %}active{% endif %}">All</a>
-    {% for cat in categories %}
-      <a href="?category={{ cat.slug }}" class="cat-pill" style="--cat-color:{{ cat.color }};">{{ cat.icon }} {{ cat.name }}</a>
-    {% endfor %}
+  <!-- Category dropdown toggle -->
+  <div class="cat-dropdown-wrap">
+    <button class="cat-dropdown-btn" id="catDropBtn" onclick="toggleCatDrop()" aria-haspopup="true" aria-expanded="false">
+      <i class="fa-solid fa-layer-group"></i>
+      <span id="catDropLabel">{% if request.GET.category %}{{ request.GET.category }}{% else %}Categories{% endif %}</span>
+      <i class="fa-solid fa-chevron-down cat-chev"></i>
+    </button>
+    <div class="cat-dropdown-menu" id="catDropMenu" role="menu">
+      <a href="{% url 'home' %}" class="cat-drop-item {% if not request.GET.category %}active{% endif %}" role="menuitem">
+        <span class="cat-drop-icon">🏠</span> All
+      </a>
+      {% for cat in categories %}
+        <a href="?category={{ cat.slug }}" class="cat-drop-item {% if request.GET.category == cat.slug %}active{% endif %}"
+           style="--cat-color:{{ cat.color }};" role="menuitem">
+          <span class="cat-drop-icon">{{ cat.icon }}</span> {{ cat.name }}
+        </a>
+      {% endfor %}
+    </div>
   </div>
 </div>
 
@@ -38,12 +51,14 @@
           <i class="fa-regular fa-image"></i>
           <input type="file" name="image" accept="image/*" hidden onchange="previewImage(this,'home-img-preview')" />
         </label>
+        {% if request.user.is_staff or request.user.is_superuser %}
         <select name="category" class="cat-select">
           <option value="">📂 Category</option>
           {% for cat in categories %}
             <option value="{{ cat.id }}">{{ cat.icon }} {{ cat.name }}</option>
           {% endfor %}
         </select>
+        {% endif %}
       </div>
       <div class="compose-right">
         <span class="char-count" id="home-char-count">0/2000</span>

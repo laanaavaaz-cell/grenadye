@@ -235,12 +235,14 @@
                 <i class="fa-regular fa-image"></i>
                 <input type="file" name="image" accept="image/*" hidden onchange="previewImage(this,'modal-img-preview')" />
               </label>
+              {% if request.user.is_staff or request.user.is_superuser %}
               <select name="category" class="cat-select">
                 <option value="">📂 Category</option>
                 {% for cat in categories %}
                   <option value="{{ cat.id }}">{{ cat.icon }} {{ cat.name }}</option>
                 {% endfor %}
               </select>
+              {% endif %}
             </div>
             <div class="modal-actions">
               <span class="char-count" id="modal-char-count">0/2000</span>

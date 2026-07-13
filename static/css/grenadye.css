@@ -191,6 +191,53 @@ textarea { resize: none; }
   border-color: var(--primary);
   color: white;
 }
+/* ─── CATEGORY DROPDOWN (feed-header) ──────────────────────── */
+.cat-dropdown-wrap {
+  position: relative;
+}
+.cat-dropdown-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: .85rem; font-weight: 500;
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: var(--surface);
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+  white-space: nowrap;
+}
+.cat-dropdown-btn:hover { background: rgba(255,255,255,.07); border-color: var(--primary); }
+.cat-chev { font-size: .7rem; transition: transform .2s; }
+.cat-dropdown-btn[aria-expanded="true"] .cat-chev { transform: rotate(180deg); }
+.cat-dropdown-menu {
+  display: none;
+  position: absolute; top: calc(100% + 6px); right: 0;
+  min-width: 180px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.45);
+  z-index: 50;
+  overflow: hidden;
+  padding: 4px 0;
+}
+.cat-dropdown-menu.open { display: block; }
+.cat-drop-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px;
+  font-size: .88rem; color: var(--text);
+  transition: background .15s;
+  white-space: nowrap;
+}
+.cat-drop-item:hover { background: rgba(255,255,255,.07); }
+.cat-drop-item.active {
+  color: var(--primary);
+  font-weight: 600;
+}
+.cat-drop-icon { width: 20px; text-align: center; }
+
+
 
 /* ─── COMPOSE BOX ───────────────────────────────────────────── */
 .compose-box {
@@ -1103,4 +1150,50 @@ textarea { resize: none; }
 /* ─── SHOW TOP NAVBAR ON MOBILE ONLY ────────────────────────── */
 @media (max-width: 700px) {
   /* top-navbar, app-wrapper padding-top, and feed-header top are set globally above */
+
+  /* ── Centering & spacing ── */
+  .feed-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .feed-header h2 { font-size: 1rem; }
+
+  /* Compose box */
+  .compose-box { padding: 10px 12px; gap: 8px; }
+  .compose-textarea { font-size: 1rem; }
+  .compose-toolbar { flex-wrap: wrap; gap: 6px; }
+  .compose-right { width: 100%; justify-content: flex-end; }
+
+  /* Post cards */
+  .post-card { padding: 12px 12px; }
+  .post-actions { gap: 12px; }
+
+  /* Right panel hidden, main feed full width, centered */
+  .main-feed {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  /* Cat dropdown anchors to left on mobile */
+  .cat-dropdown-menu { right: auto; left: 0; }
+
+  /* Widget boxes in right panel (hidden on mobile anyway) */
+  .widget-box { padding: 12px; }
+
+  /* Bottom nav safe area */
+  .main-feed { padding-bottom: 80px; }
+
+  /* Avatar sizing */
+  .avatar-sm { width: 36px; height: 36px; font-size: .85rem; }
+
+  /* Modal full-screen on mobile */
+  .modal-overlay { padding-top: 0; align-items: flex-end; }
+  .modal-box {
+    border-radius: 16px 16px 0 0;
+    max-height: 85vh;
+  }
 }
