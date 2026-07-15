@@ -19,17 +19,35 @@
   </form>
 </div>
 
-<!-- Category Tabs -->
-<div class="cat-tabs">
-  <a href="{% url 'explore' %}{% if query %}?q={{ query }}{% endif %}" class="cat-tab {% if not active_category %}active{% endif %}">All</a>
-  {% for cat in categories %}
-    <a href="{% url 'explore' %}?category={{ cat.slug }}{% if query %}&q={{ query }}{% endif %}"
-       class="cat-tab {% if active_category.slug == cat.slug %}active{% endif %}"
-       style="{% if active_category.slug == cat.slug %}border-bottom-color:{{ cat.color }};color:{{ cat.color }};{% endif %}">
-      {{ cat.icon }} {{ cat.name }}
-    </a>
-  {% endfor %}
+<!-- Who to Follow — mobile collapsible dropdown -->
+{% if suggested_users %}
+<div class="explore-wtf-mobile">
+  <button class="explore-wtf-toggle" onclick="toggleWTF(this)" aria-expanded="false">
+    <span><i class="fa-solid fa-user-plus"></i> Who to follow</span>
+    <i class="fa-solid fa-chevron-down wtf-chev"></i>
+  </button>
+  <div class="explore-wtf-list" id="exploreWTFList">
+    {% for u in suggested_users %}
+    <div class="suggest-row">
+      <a href="{% url 'profile' username=u.username %}" class="suggest-avatar avatar avatar-sm">
+        {% if u.profile.avatar %}
+          <img src="{{ u.profile.avatar.url }}" alt="avatar" />
+        {% else %}
+          <span>{{ u.username|slice:":1"|upper }}</span>
+        {% endif %}
+      </a>
+      <div class="suggest-info">
+        <a href="{% url 'profile' username=u.username %}">
+          <strong>{% if u.first_name %}{{ u.first_name }} {{ u.last_name }}{% else %}{{ u.username }}{% endif %}</strong>
+          <small>@{{ u.username }}</small>
+        </a>
+      </div>
+      <button class="follow-btn" data-username="{{ u.username }}" onclick="followUser(this)">Follow</button>
+    </div>
+    {% endfor %}
+  </div>
 </div>
+{% endif %}
 
 <!-- People Results -->
 {% if users and query %}
@@ -81,4 +99,15 @@
     </div>
   {% endfor %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleWTF(btn) {
+  const list = document.getElementById('exploreWTFList');
+  const open = list.classList.toggle('open');
+  btn.setAttribute('aria-expanded', open);
+  btn.querySelector('.wtf-chev').style.transform = open ? 'rotate(180deg)' : '';
+}
+</script>
 {% endblock %}

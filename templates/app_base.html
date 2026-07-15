@@ -16,6 +16,7 @@
 
 <!-- ── FULLSCREEN MENU OVERLAY (outside app-wrapper so it covers everything) ── -->
 <div class="fullmenu-overlay" id="fullMenuOverlay">
+
   <!-- Header section -->
   <div class="fullmenu-header">
     <button class="fullmenu-close" onclick="closeFullMenu()" aria-label="Close menu">
@@ -30,56 +31,67 @@
     </div>
   </div>
 
-  <!-- Row 1: Main navigation -->
-  <div class="fullmenu-section-label">Navigation</div>
-  <div class="fullmenu-row">
-    <a href="{% url 'home' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'home' %}active{% endif %}" onclick="closeFullMenu()">
-      <i class="fa-solid fa-house"></i>
-      <span>Home</span>
-    </a>
-    <a href="{% url 'explore' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'explore' or request.resolver_match.url_name == 'category_view' %}active{% endif %}" onclick="closeFullMenu()">
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <span>Explore</span>
-    </a>
-    <a href="{% url 'notifications' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}" onclick="closeFullMenu()">
-      <i class="fa-solid fa-bell"></i>
-      <span>Notifications</span>
-    </a>
-  </div>
-
-  <!-- Row 2: Account -->
-  <div class="fullmenu-section-label">Account</div>
-  <div class="fullmenu-row">
-    <a href="{% url 'profile' username=request.user.username %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'profile' and request.resolver_match.kwargs.username == request.user.username %}active{% endif %}" onclick="closeFullMenu()">
-      <i class="fa-solid fa-user"></i>
-      <span>Profile</span>
-    </a>
-    <a href="{% url 'edit_profile' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'edit_profile' %}active{% endif %}" onclick="closeFullMenu()">
-      <i class="fa-solid fa-pen-to-square"></i>
-      <span>Edit Profile</span>
-    </a>
-    <button class="fullmenu-btn" onclick="openPostModal(); closeFullMenu();">
-      <i class="fa-solid fa-plus"></i>
-      <span>New Post</span>
-    </button>
-  </div>
-
-  <!-- Row 3: More -->
-  <div class="fullmenu-section-label">More</div>
-  <div class="fullmenu-row">
-    <a href="{% url 'explore' %}" class="fullmenu-btn" onclick="closeFullMenu()">
-      <i class="fa-solid fa-fire"></i>
-      <span>Trending</span>
-    </a>
-    <a href="{% url 'logout' %}" class="fullmenu-btn fullmenu-btn-danger">
-      <i class="fa-solid fa-right-from-bracket"></i>
-      <span>Logout</span>
-    </a>
-    <div class="fullmenu-btn fullmenu-btn-ghost">
-      <i class="fa-regular fa-copyright"></i>
-      <span>© 2026 Grenadye</span>
+  <!-- ── AD / PUBLICITY BANNER ── -->
+  <div class="fullmenu-ad-slot">
+    <div class="fullmenu-ad-inner">
+      <span class="fullmenu-ad-label">Sponsored</span>
+      <p class="fullmenu-ad-text">Your ad could be here — <a href="mailto:hello@grenadye.net">advertise with us</a></p>
     </div>
   </div>
+
+  <!-- Single horizontal centered button group -->
+  <div class="fullmenu-section-label">Menu</div>
+  <ul class="fullmenu-list">
+    <li>
+      <a href="{% url 'home' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'home' %}active{% endif %}" onclick="closeFullMenu()">
+        <i class="fa-solid fa-house"></i>
+        <span>Home</span>
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'explore' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'explore' or request.resolver_match.url_name == 'category_view' %}active{% endif %}" onclick="closeFullMenu()">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span>Explore</span>
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'notifications' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}" onclick="closeFullMenu()">
+        <i class="fa-solid fa-bell"></i>
+        <span>Notifications</span>
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'profile' username=request.user.username %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'profile' and request.resolver_match.kwargs.username == request.user.username %}active{% endif %}" onclick="closeFullMenu()">
+        <i class="fa-solid fa-user"></i>
+        <span>Profile</span>
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'edit_profile' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'edit_profile' %}active{% endif %}" onclick="closeFullMenu()">
+        <i class="fa-solid fa-pen-to-square"></i>
+        <span>Edit Profile</span>
+      </a>
+    </li>
+    <li>
+      <button class="fullmenu-btn" onclick="openPostModal(); closeFullMenu();">
+        <i class="fa-solid fa-plus"></i>
+        <span>New Post</span>
+      </button>
+    </li>
+    <li>
+      <a href="{% url 'logout' %}" class="fullmenu-btn fullmenu-btn-danger">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Logout</span>
+      </a>
+    </li>
+    <li>
+      <div class="fullmenu-btn fullmenu-btn-ghost">
+        <i class="fa-regular fa-copyright"></i>
+        <span>© 2026</span>
+      </div>
+    </li>
+  </ul>
+
 </div>
 
 <!-- ── APP WRAPPER (flex row: sidebar | feed | right panel) ── -->
@@ -255,18 +267,111 @@
   </div>
 </div>
 
-<script>
-  function openFullMenu() {
-    document.getElementById('fullMenuOverlay').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeFullMenu() {
-    document.getElementById('fullMenuOverlay').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeFullMenu();
-  });
-</script>
+{% block extra_js %}{% endblock %}
 
+<script>
+/* ── NOTIFICATIONS POLLING ── */
+function fetchNotifCount(){
+  fetch('/notifications/count/')
+    .then(r=>r.json())
+    .then(d=>{
+      const badge=document.getElementById('notif-badge');
+      const dot=document.getElementById('notif-dot');
+      if(d.count>0){
+        if(badge){badge.textContent=d.count;badge.style.display='';}
+        if(dot) dot.style.display='';
+      } else {
+        if(badge) badge.style.display='none';
+        if(dot)   dot.style.display='none';
+      }
+    }).catch(()=>{});
+}
+fetchNotifCount();
+setInterval(fetchNotifCount,60000);
+
+/* ── FULLSCREEN MENU ── */
+function openFullMenu(){
+  document.getElementById('fullMenuOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeFullMenu(){
+  document.getElementById('fullMenuOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+/* ── POST MODAL ── */
+function openPostModal(){
+  document.getElementById('postModal').classList.add('open');
+  document.body.style.overflow='hidden';
+  const ta=document.getElementById('modal-content');
+  if(ta) setTimeout(()=>ta.focus(),100);
+}
+function closePostModal(e){
+  if(!e||e.target===document.getElementById('postModal')||e.currentTarget===document.querySelector('.modal-close')){
+    document.getElementById('postModal').classList.remove('open');
+    document.body.style.overflow='';
+  }
+}
+
+/* ── CHAR COUNT ── */
+function updateCharCount(ta,countId,btnId,max){
+  const len=ta.value.length;
+  const el=document.getElementById(countId);
+  const btn=document.getElementById(btnId);
+  if(el) el.textContent=len+'/'+max;
+  if(btn) btn.disabled=len===0||len>max;
+}
+
+/* ── IMAGE PREVIEW ── */
+function previewImage(input,previewId){
+  const wrap=document.getElementById(previewId);
+  if(!wrap) return;
+  wrap.innerHTML='';
+  if(input.files&&input.files[0]){
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=document.createElement('img');
+      img.src=e.target.result;
+      wrap.appendChild(img);
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+/* ── FOLLOW ── */
+function followUser(btn){
+  const username=btn.dataset.username;
+  fetch(`/follow/${username}/`,{method:'POST',headers:{'X-CSRFToken':getCookie('csrftoken')}})
+    .then(r=>r.json())
+    .then(d=>{
+      btn.textContent=d.following?'Following':'Follow';
+      btn.classList.toggle('following',d.following);
+    }).catch(()=>{});
+}
+
+/* ── CAT DROPDOWN ── */
+function toggleCatDropdown(btn){
+  const menu=btn.nextElementSibling;
+  const open=menu.classList.toggle('open');
+  btn.setAttribute('aria-expanded',open);
+  if(open){
+    document.addEventListener('click',function handler(e){
+      if(!btn.contains(e.target)&&!menu.contains(e.target)){
+        menu.classList.remove('open');
+        btn.setAttribute('aria-expanded','false');
+        document.removeEventListener('click',handler);
+      }
+    });
+  }
+}
+
+function getCookie(name){
+  let v=null;
+  document.cookie.split(';').forEach(c=>{
+    const[k,val]=c.trim().split('=');
+    if(k===name) v=decodeURIComponent(val);
+  });
+  return v;
+}
+</script>
 {% endblock %}
