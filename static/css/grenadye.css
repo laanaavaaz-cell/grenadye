@@ -1136,34 +1136,36 @@ textarea { resize: none; }
 .fullmenu-ad-text a { color: var(--primary); }
 .fullmenu-ad-text a:hover { text-decoration: underline; }
 
-/* Single horizontal centered list of menu buttons */
+/* Single vertical centered list of menu buttons */
 .fullmenu-list {
   list-style: none;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  padding: 0 16px 24px;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 20px 28px;
+  width: 100%;
 }
 .fullmenu-list li {
-  flex: 0 0 auto;
+  width: 100%;
+  max-width: 420px;
 }
 
 .fullmenu-btn {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 8px;
-  padding: 18px 20px;
-  border-radius: 16px;
+  display: flex; flex-direction: row; align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-radius: 14px;
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--text);
-  font-size: .82rem; font-weight: 600;
-  text-align: center;
-  min-width: 80px;
+  font-size: .95rem; font-weight: 600;
+  text-align: left;
+  width: 100%;
   transition: background .18s, border-color .18s, color .18s;
   cursor: pointer;
 }
-.fullmenu-btn i { font-size: 1.35rem; color: var(--primary); }
+.fullmenu-btn i { font-size: 1.2rem; color: var(--primary); width: 24px; text-align: center; flex-shrink: 0; }
 .fullmenu-btn:hover { background: rgba(29,155,240,.1); border-color: var(--primary); }
 .fullmenu-btn.active {
   background: rgba(29,155,240,.15);
