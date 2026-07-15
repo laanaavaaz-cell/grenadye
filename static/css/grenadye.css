@@ -187,8 +187,8 @@ textarea { resize: none; }
 }
 .cat-pill:hover { background: rgba(255,255,255,.07); color: var(--text); }
 .cat-pill.active {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: var(--cat-color, var(--primary));
+  border-color: var(--cat-color, var(--primary));
   color: white;
 }
 /* ─── CATEGORY DROPDOWN (feed-header) ──────────────────────── */
@@ -1136,32 +1136,24 @@ textarea { resize: none; }
 .fullmenu-ad-text a { color: var(--primary); }
 .fullmenu-ad-text a:hover { text-decoration: underline; }
 
-/* Single vertical centered list of menu buttons */
-.fullmenu-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 0 20px 28px;
-  width: 100%;
-}
-.fullmenu-list li {
-  width: 100%;
-  max-width: 420px;
+/* 3-column grid of menu buttons */
+.fullmenu-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 0 16px 8px;
 }
 
 .fullmenu-btn {
-  display: flex; flex-direction: row; align-items: center;
-  gap: 14px;
-  padding: 14px 20px;
-  border-radius: 14px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px;
+  padding: 20px 8px;
+  border-radius: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--text);
-  font-size: .95rem; font-weight: 600;
-  text-align: left;
-  width: 100%;
+  font-size: .82rem; font-weight: 600;
+  text-align: center;
   transition: background .18s, border-color .18s, color .18s;
   cursor: pointer;
 }
@@ -1280,4 +1272,13 @@ textarea { resize: none; }
 
 @media (max-width: 700px) {
   .explore-wtf-mobile { display: block; }
+}
+
+/* ─── POST DETAIL — category dropdown mobile only ───────────── */
+.post-detail-cat-drop {
+  display: none;
+  margin-left: auto;
+}
+@media (max-width: 700px) {
+  .post-detail-cat-drop { display: block; }
 }

@@ -39,58 +39,54 @@
     </div>
   </div>
 
-  <!-- Single horizontal centered button group -->
-  <div class="fullmenu-section-label">Menu</div>
-  <ul class="fullmenu-list">
-    <li>
-      <a href="{% url 'home' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'home' %}active{% endif %}" onclick="closeFullMenu()">
-        <i class="fa-solid fa-house"></i>
-        <span>Home</span>
-      </a>
-    </li>
-    <li>
-      <a href="{% url 'explore' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'explore' or request.resolver_match.url_name == 'category_view' %}active{% endif %}" onclick="closeFullMenu()">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <span>Explore</span>
-      </a>
-    </li>
-    <li>
-      <a href="{% url 'notifications' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}" onclick="closeFullMenu()">
-        <i class="fa-solid fa-bell"></i>
-        <span>Notifications</span>
-      </a>
-    </li>
-    <li>
-      <a href="{% url 'profile' username=request.user.username %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'profile' and request.resolver_match.kwargs.username == request.user.username %}active{% endif %}" onclick="closeFullMenu()">
-        <i class="fa-solid fa-user"></i>
-        <span>Profile</span>
-      </a>
-    </li>
-    <li>
-      <a href="{% url 'edit_profile' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'edit_profile' %}active{% endif %}" onclick="closeFullMenu()">
-        <i class="fa-solid fa-pen-to-square"></i>
-        <span>Edit Profile</span>
-      </a>
-    </li>
-    <li>
-      <button class="fullmenu-btn" onclick="openPostModal(); closeFullMenu();">
-        <i class="fa-solid fa-plus"></i>
-        <span>New Post</span>
-      </button>
-    </li>
-    <li>
-      <a href="{% url 'logout' %}" class="fullmenu-btn fullmenu-btn-danger">
-        <i class="fa-solid fa-right-from-bracket"></i>
-        <span>Logout</span>
-      </a>
-    </li>
-    <li>
-      <div class="fullmenu-btn fullmenu-btn-ghost">
-        <i class="fa-regular fa-copyright"></i>
-        <span>© 2026</span>
-      </div>
-    </li>
-  </ul>
+  <!-- 3-column grid button groups -->
+  <div class="fullmenu-section-label">Navigation</div>
+  <div class="fullmenu-grid">
+    <a href="{% url 'home' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'home' %}active{% endif %}" onclick="closeFullMenu()">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
+    <a href="{% url 'explore' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'explore' or request.resolver_match.url_name == 'category_view' %}active{% endif %}" onclick="closeFullMenu()">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <span>Explore</span>
+    </a>
+    <a href="{% url 'notifications' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}" onclick="closeFullMenu()">
+      <i class="fa-solid fa-bell"></i>
+      <span>Notifications</span>
+    </a>
+  </div>
+
+  <div class="fullmenu-section-label">Account</div>
+  <div class="fullmenu-grid">
+    <a href="{% url 'profile' username=request.user.username %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'profile' and request.resolver_match.kwargs.username == request.user.username %}active{% endif %}" onclick="closeFullMenu()">
+      <i class="fa-solid fa-user"></i>
+      <span>Profile</span>
+    </a>
+    <a href="{% url 'edit_profile' %}" class="fullmenu-btn {% if request.resolver_match.url_name == 'edit_profile' %}active{% endif %}" onclick="closeFullMenu()">
+      <i class="fa-solid fa-pen-to-square"></i>
+      <span>Edit Profile</span>
+    </a>
+    <button class="fullmenu-btn" onclick="openPostModal(); closeFullMenu();">
+      <i class="fa-solid fa-plus"></i>
+      <span>New Post</span>
+    </button>
+  </div>
+
+  <div class="fullmenu-section-label">More</div>
+  <div class="fullmenu-grid">
+    <a href="{% url 'explore' %}" class="fullmenu-btn" onclick="closeFullMenu()">
+      <i class="fa-solid fa-fire"></i>
+      <span>Trending</span>
+    </a>
+    <a href="{% url 'logout' %}" class="fullmenu-btn fullmenu-btn-danger">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      <span>Logout</span>
+    </a>
+    <div class="fullmenu-btn fullmenu-btn-ghost">
+      <i class="fa-regular fa-copyright"></i>
+      <span>© 2026</span>
+    </div>
+  </div>
 
 </div>
 

@@ -16,11 +16,13 @@
   </div>
 </div>
 
-<!-- Category filter pills -->
+<!-- Category filter pills — all screens -->
 <div class="cat-pills" style="padding:8px 16px; border-bottom:1px solid var(--border);">
   <a href="{% url 'explore' %}" class="cat-pill">All categories</a>
   {% for cat in categories %}
-    <a href="{% url 'category_view' slug=cat.slug %}" class="cat-pill {% if cat.slug == category.slug %}active{% endif %}" style="--cat-color:{{ cat.color }};">{{ cat.icon }} {{ cat.name }}</a>
+    <a href="{% url 'category_view' slug=cat.slug %}"
+       class="cat-pill {% if cat.slug == category.slug %}active{% endif %}"
+       style="--cat-color:{{ cat.color }};">{{ cat.icon }} {{ cat.name }}</a>
   {% endfor %}
 </div>
 

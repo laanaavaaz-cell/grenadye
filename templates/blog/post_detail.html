@@ -7,6 +7,25 @@
 <div class="feed-header">
   <a href="javascript:history.back()" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
   <h2>Post</h2>
+  <!-- Category dropdown — mobile only -->
+  <div class="cat-dropdown-wrap post-detail-cat-drop">
+    <button class="cat-dropdown-btn" id="catDropBtn" onclick="toggleCatDrop()" aria-haspopup="true" aria-expanded="false">
+      <i class="fa-solid fa-layer-group"></i>
+      <span id="catDropLabel">{% if request.GET.category %}{{ request.GET.category }}{% else %}Categories{% endif %}</span>
+      <i class="fa-solid fa-chevron-down cat-chev"></i>
+    </button>
+    <div class="cat-dropdown-menu" id="catDropMenu" role="menu">
+      <a href="{% url 'home' %}" class="cat-drop-item {% if not request.GET.category %}active{% endif %}" role="menuitem">
+        <span class="cat-drop-icon">🏠</span> All
+      </a>
+      {% for cat in categories %}
+        <a href="?category={{ cat.slug }}" class="cat-drop-item {% if request.GET.category == cat.slug %}active{% endif %}"
+           style="--cat-color:{{ cat.color }};" role="menuitem">
+          <span class="cat-drop-icon">{{ cat.icon }}</span> {{ cat.name }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
 </div>
 
 <!-- Full Post -->
@@ -100,7 +119,6 @@
 
   {% for comment in comments %}
   <div class="comment-thread" id="comment-{{ comment.pk }}">
-    <!-- Top-level comment -->
     <div class="comment-card">
       <a href="{% url 'profile' username=comment.user.username %}" class="post-avatar-link">
         <div class="avatar avatar-xs">
@@ -133,7 +151,6 @@
           </button>
         </div>
 
-        <!-- Reply form (hidden by default) -->
         <div class="reply-form-wrap" id="reply-form-{{ comment.pk }}" style="display:none;">
           <form method="POST" action="{% url 'add_comment' pk=post.pk %}" class="comment-form">
             {% csrf_token %}
@@ -147,7 +164,6 @@
           </form>
         </div>
 
-        <!-- Nested Replies -->
         {% if comment.replies.all %}
         <div class="replies-list">
           {% for reply in comment.replies.all %}
@@ -199,11 +215,23 @@
 <script>
 function toggleReplyForm(commentId) {
   const form = document.getElementById('reply-form-' + commentId);
-  if (form.style.display === 'none') {
-    form.style.display = 'block';
-    form.querySelector('textarea').focus();
-  } else {
-    form.style.display = 'none';
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  if (form.style.display === 'block') form.querySelector('textarea').focus();
+}
+
+function toggleCatDrop() {
+  const menu = document.getElementById('catDropMenu');
+  const btn  = document.getElementById('catDropBtn');
+  const open = menu.classList.toggle('open');
+  btn.setAttribute('aria-expanded', open);
+  if (open) {
+    document.addEventListener('click', function handler(e) {
+      if (!btn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        document.removeEventListener('click', handler);
+      }
+    });
   }
 }
 </script>
