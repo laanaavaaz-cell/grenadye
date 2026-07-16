@@ -1072,6 +1072,20 @@ textarea { resize: none; }
 }
 .fullmenu-overlay.open { display: flex; }
 
+/* Desktop: constrain fullmenu to 40% width, centred */
+@media (min-width: 701px) {
+  .fullmenu-overlay {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40%;
+    max-width: 520px;
+    inset: 0 auto 0 auto;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    box-shadow: 0 0 40px rgba(0,0,0,.5);
+  }
+}
+
 @keyframes menuSlideIn {
   from { opacity: 0; transform: translateY(-18px); }
   to   { opacity: 1; transform: translateY(0); }

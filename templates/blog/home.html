@@ -8,25 +8,7 @@
 <!-- Feed Header -->
 <div class="feed-header">
   <h2>Home</h2>
-  <!-- Category dropdown toggle -->
-  <div class="cat-dropdown-wrap">
-    <button class="cat-dropdown-btn" id="catDropBtn" onclick="toggleCatDrop()" aria-haspopup="true" aria-expanded="false">
-      <i class="fa-solid fa-layer-group"></i>
-      <span id="catDropLabel">{% if request.GET.category %}{{ request.GET.category }}{% else %}Categories{% endif %}</span>
-      <i class="fa-solid fa-chevron-down cat-chev"></i>
-    </button>
-    <div class="cat-dropdown-menu" id="catDropMenu" role="menu">
-      <a href="{% url 'home' %}" class="cat-drop-item {% if not request.GET.category %}active{% endif %}" role="menuitem">
-        <span class="cat-drop-icon">🏠</span> All
-      </a>
-      {% for cat in categories %}
-        <a href="?category={{ cat.slug }}" class="cat-drop-item {% if request.GET.category == cat.slug %}active{% endif %}"
-           style="--cat-color:{{ cat.color }};" role="menuitem">
-          <span class="cat-drop-icon">{{ cat.icon }}</span> {{ cat.name }}
-        </a>
-      {% endfor %}
-    </div>
-  </div>
+
 </div>
 
 <!-- Compose Box -->
