@@ -1062,32 +1062,35 @@ textarea { resize: none; }
 /* ─── FULLSCREEN MENU OVERLAY ────────────────────────────────── */
 .fullmenu-overlay {
   display: none;
-  position: fixed; inset: 0;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: var(--bg);
   z-index: 300;
   flex-direction: column;
   padding: 0;
   overflow-y: auto;
-  animation: menuSlideIn .28s cubic-bezier(.4,0,.2,1);
 }
-.fullmenu-overlay.open { display: flex; }
+.fullmenu-overlay.open {
+  display: flex;
+  animation: menuSlideIn .25s cubic-bezier(.4,0,.2,1) both;
+}
 
-/* Desktop: constrain fullmenu to 40% width, centred */
+/* Desktop: 40% width panel, centred horizontally */
 @media (min-width: 701px) {
   .fullmenu-overlay {
     left: 50%;
-    transform: translateX(-50%);
+    margin-left: -20%;   /* 40% / 2 = 20% — centres without transform */
     width: 40%;
     max-width: 520px;
-    inset: 0 auto 0 auto;
+    right: auto;
     border-left: 1px solid var(--border);
     border-right: 1px solid var(--border);
-    box-shadow: 0 0 40px rgba(0,0,0,.5);
+    box-shadow: 0 0 60px rgba(0,0,0,.6);
   }
 }
 
 @keyframes menuSlideIn {
-  from { opacity: 0; transform: translateY(-18px); }
+  from { opacity: 0; transform: translateY(-14px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 

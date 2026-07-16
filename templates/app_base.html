@@ -361,6 +361,24 @@ function toggleCatDropdown(btn){
   }
 }
 
+/* Global alias used by feed-header dropdowns (home, explore, post_detail) */
+function toggleCatDrop(){
+  const btn  = document.getElementById('catDropBtn');
+  const menu = document.getElementById('catDropMenu');
+  if(!btn||!menu) return;
+  const open = menu.classList.toggle('open');
+  btn.setAttribute('aria-expanded', open);
+  if(open){
+    document.addEventListener('click', function handler(e){
+      if(!btn.contains(e.target) && !menu.contains(e.target)){
+        menu.classList.remove('open');
+        btn.setAttribute('aria-expanded','false');
+        document.removeEventListener('click', handler);
+      }
+    });
+  }
+}
+
 function getCookie(name){
   let v=null;
   document.cookie.split(';').forEach(c=>{

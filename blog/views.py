@@ -87,7 +87,17 @@ def home_view(request):
     feed_ids = [request.user.id] + list(following_users)
     posts = Post.objects.filter(user_id__in=feed_ids).select_related('user', 'user__profile', 'category').distinct()
 
-    ctx.update({'posts': posts, 'form': form})
+    # Category filter (mobile dropdown)
+    category_slug = request.GET.get('category', '').strip()
+    active_category = None
+    if category_slug:
+        try:
+            active_category = Category.objects.get(slug=category_slug)
+            posts = posts.filter(category=active_category)
+        except Category.DoesNotExist:
+            pass
+
+    ctx.update({'posts': posts, 'form': form, 'active_category': active_category})
     return render(request, 'blog/home.html', ctx)
 
 
