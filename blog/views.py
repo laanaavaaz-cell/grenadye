@@ -82,20 +82,23 @@ def home_view(request):
     else:
         form = PostForm()
 
-    # Feed: own posts + people followed
-    following_users = profile.following.values_list('user', flat=True)
-    feed_ids = [request.user.id] + list(following_users)
-    posts = Post.objects.filter(user_id__in=feed_ids).select_related('user', 'user__profile', 'category').distinct()
-
-    # Category filter (mobile dropdown)
+    # Category filter (mobile dropdown) — when filtering, show ALL posts in that category
     category_slug = request.GET.get('category', '').strip()
     active_category = None
     if category_slug:
         try:
             active_category = Category.objects.get(slug=category_slug)
-            posts = posts.filter(category=active_category)
+            posts = Post.objects.filter(category=active_category).select_related('user', 'user__profile', 'category')
         except Category.DoesNotExist:
-            pass
+            # No match — fall back to normal feed
+            following_users = profile.following.values_list('user', flat=True)
+            feed_ids = [request.user.id] + list(following_users)
+            posts = Post.objects.filter(user_id__in=feed_ids).select_related('user', 'user__profile', 'category').distinct()
+    else:
+        # Normal feed: own posts + followed
+        following_users = profile.following.values_list('user', flat=True)
+        feed_ids = [request.user.id] + list(following_users)
+        posts = Post.objects.filter(user_id__in=feed_ids).select_related('user', 'user__profile', 'category').distinct()
 
     ctx.update({'posts': posts, 'form': form, 'active_category': active_category})
     return render(request, 'blog/home.html', ctx)

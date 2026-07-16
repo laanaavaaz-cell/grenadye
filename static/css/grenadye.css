@@ -215,12 +215,14 @@ textarea { resize: none; }
   display: none;
   position: absolute; top: calc(100% + 6px); right: 0;
   min-width: 180px;
+  max-width: calc(100vw - 32px);  /* never bleed off screen */
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.45);
-  z-index: 50;
-  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
+  z-index: 200;  /* above everything in feed */
+  overflow-y: auto;
+  max-height: 60vh;  /* never extend beyond viewport */
   padding: 4px 0;
 }
 .cat-dropdown-menu.open { display: block; }
@@ -1075,17 +1077,10 @@ textarea { resize: none; }
   animation: menuSlideIn .25s cubic-bezier(.4,0,.2,1) both;
 }
 
-/* Desktop: 40% width panel, centred horizontally */
+/* Desktop: stays 100% wide, buttons constrained to 40% */
 @media (min-width: 701px) {
   .fullmenu-overlay {
-    left: 50%;
-    margin-left: -20%;   /* 40% / 2 = 20% — centres without transform */
-    width: 40%;
-    max-width: 520px;
-    right: auto;
-    border-left: 1px solid var(--border);
-    border-right: 1px solid var(--border);
-    box-shadow: 0 0 60px rgba(0,0,0,.6);
+    /* full screen — no override */
   }
 }
 
@@ -1138,7 +1133,7 @@ textarea { resize: none; }
 .fullmenu-ad-slot {
   margin: 10px auto;
   width: calc(100% - 32px);
-  max-width: 320px;
+  max-width: 480px;
   border-radius: 12px;
   overflow: hidden;
   border: 1px dashed var(--border);
@@ -1161,12 +1156,13 @@ textarea { resize: none; }
 .fullmenu-ad-text a { color: var(--primary); }
 .fullmenu-ad-text a:hover { text-decoration: underline; }
 
-/* 3-column grid of menu buttons */
+/* Menu buttons — row layout, each button at 40% on desktop / 100% on mobile */
 .fullmenu-grid {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   padding: 0 16px 10px;
+  align-items: center;
 }
 
 .fullmenu-btn {
@@ -1179,9 +1175,15 @@ textarea { resize: none; }
   color: var(--text);
   font-size: .92rem; font-weight: 600;
   text-align: left;
-  width: 100%;
+  width: 100%;          /* full on mobile */
   transition: background .18s, border-color .18s, color .18s;
   cursor: pointer;
+}
+@media (min-width: 701px) {
+  .fullmenu-btn {
+    width: 40%;         /* 40% on desktop */
+    max-width: 480px;
+  }
 }
 .fullmenu-btn i { font-size: 1.1rem; color: var(--primary); width: 22px; text-align: center; flex-shrink: 0; }
 .fullmenu-btn:hover { background: rgba(29,155,240,.1); border-color: var(--primary); }
@@ -1300,11 +1302,19 @@ textarea { resize: none; }
   .explore-wtf-mobile { display: block; }
 }
 
-/* ─── POST DETAIL — category dropdown mobile only ───────────── */
+/* ─── POST DETAIL / HOME / EXPLORE — category dropdown mobile only ─── */
 .post-detail-cat-drop {
   display: none;
   margin-left: auto;
+  position: relative;
 }
 @media (max-width: 700px) {
   .post-detail-cat-drop { display: block; }
+  /* Dropdown opens to the left on mobile to prevent bleed */
+  .post-detail-cat-drop .cat-dropdown-menu {
+    right: 0;
+    left: auto;
+    /* Clamp so it never goes off the left edge */
+    max-width: calc(100vw - 24px);
+  }
 }
