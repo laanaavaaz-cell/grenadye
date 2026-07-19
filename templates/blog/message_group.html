@@ -1,0 +1,86 @@
+{% extends 'app_base.html' %}
+{% block title %}
+  {% if group.is_direct %}
+    DM — Grenadye.net
+  {% else %}
+    {{ group.name }} — Grenadye.net
+  {% endif %}
+{% endblock %}
+
+{% block main_content %}
+<div class="feed-header">
+  <a href="{% url 'inbox' %}" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+  <h2>
+    {% if group.is_direct %}
+      {% for m in group.members.all %}{% if m != request.user %}@{{ m.username }}{% endif %}{% endfor %}
+    {% else %}
+      {{ group.name }}
+    {% endif %}
+  </h2>
+</div>
+
+<!-- Messages thread -->
+<div class="messages-thread" id="messagesThread">
+  {% for msg in messages %}
+  <div class="msg-row {% if msg.sender == request.user %}msg-mine{% else %}msg-theirs{% endif %}">
+    {% if msg.sender != request.user %}
+    <a href="{% url 'profile' username=msg.sender.username %}" class="msg-avatar">
+      <div class="avatar avatar-xs">
+        {% if msg.sender.profile.avatar %}
+          <img src="{{ msg.sender.profile.avatar.url }}" alt="avatar" />
+        {% else %}
+          <span>{{ msg.sender.username|slice:":1"|upper }}</span>
+        {% endif %}
+      </div>
+    </a>
+    {% endif %}
+    <div class="msg-bubble-wrap">
+      {% if msg.sender != request.user and not group.is_direct %}
+        <span class="msg-sender-name">{{ msg.sender.username }}</span>
+      {% endif %}
+      <div class="msg-bubble">
+        {% if msg.image %}<img src="{{ msg.image.url }}" alt="image" class="msg-img" />{% endif %}
+        <p>{{ msg.content }}</p>
+      </div>
+      <span class="msg-time">{{ msg.created_at|date:"g:i A" }}</span>
+    </div>
+  </div>
+  {% empty %}
+  <div class="empty-state" style="padding:40px 0;">
+    <i class="fa-regular fa-comment-dots"></i>
+    <h3>No messages yet</h3>
+    <p>Send the first message!</p>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Compose -->
+<div class="msg-compose">
+  <form method="POST" enctype="multipart/form-data" class="msg-compose-form">
+    {% csrf_token %}
+    <label class="tool-btn" title="Attach image">
+      <i class="fa-regular fa-image"></i>
+      <input type="file" name="image" accept="image/*" hidden />
+    </label>
+    <textarea name="content" placeholder="Type a message…" class="msg-textarea"
+              oninput="autoResizeMsgBox(this)"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.closest('form').submit();}"></textarea>
+    <button type="submit" class="msg-send-btn">
+      <i class="fa-solid fa-paper-plane"></i>
+    </button>
+  </form>
+</div>
+
+<script>
+// Auto-scroll to bottom
+document.addEventListener('DOMContentLoaded', function () {
+  var thread = document.getElementById('messagesThread');
+  if (thread) thread.scrollTop = thread.scrollHeight;
+});
+
+function autoResizeMsgBox(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+</script>
+{% endblock %}

@@ -3,15 +3,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_POST
 from django.db.models import Q
-from .models import Category, Post, Comment, Like, Notification, Profile
-from .forms import RegisterForm, PostForm, CommentForm, ProfileEditForm
+from .models import Category, Post, Comment, Like, Notification, Profile, MessageGroup, Message
+from .forms import RegisterForm, PostForm, PostEditForm, CommentForm, ProfileEditForm, MessageGroupForm, MessageForm
 
 
 def _common_context(request):
-    """Shared context injected into every view."""
     return {
         'categories': Category.objects.all(),
         'suggested_users': (
@@ -21,6 +20,8 @@ def _common_context(request):
         ),
     }
 
+
+# ── AUTH ──────────────────────────────────────────────────────
 
 def register_view(request):
     if request.user.is_authenticated:
@@ -43,10 +44,8 @@ def login_view(request):
     if request.method == 'POST':
         identifier = request.POST.get('identifier', '').strip()
         password = request.POST.get('password', '')
-        # Try username first
         user = authenticate(request, username=identifier, password=password)
         if not user:
-            # Try email
             try:
                 u = User.objects.get(email__iexact=identifier)
                 user = authenticate(request, username=u.username, password=password)
@@ -54,8 +53,7 @@ def login_view(request):
                 pass
         if user:
             login(request, user)
-            next_url = request.GET.get('next', '/')
-            return redirect(next_url)
+            return redirect(request.GET.get('next', '/'))
         else:
             error = 'Invalid email/username or password.'
     return render(request, 'auth/login.html', {'error': error})
@@ -66,13 +64,16 @@ def logout_view(request):
     return redirect('login')
 
 
+# ── HOME ──────────────────────────────────────────────────────
+
 @login_required
 def home_view(request):
     ctx = _common_context(request)
     profile = request.user.profile
 
-    # Compose new post
     if request.method == 'POST':
+        if not profile.can_post():
+            return HttpResponseForbidden("You don't have permission to post.")
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
             post = form.save(commit=False)
@@ -82,7 +83,6 @@ def home_view(request):
     else:
         form = PostForm()
 
-    # Category filter (mobile dropdown) — when filtering, show ALL posts in that category
     category_slug = request.GET.get('category', '').strip()
     active_category = None
     if category_slug:
@@ -90,12 +90,10 @@ def home_view(request):
             active_category = Category.objects.get(slug=category_slug)
             posts = Post.objects.filter(category=active_category).select_related('user', 'user__profile', 'category')
         except Category.DoesNotExist:
-            # No match — fall back to normal feed
             following_users = profile.following.values_list('user', flat=True)
             feed_ids = [request.user.id] + list(following_users)
             posts = Post.objects.filter(user_id__in=feed_ids).select_related('user', 'user__profile', 'category').distinct()
     else:
-        # Normal feed: own posts + followed
         following_users = profile.following.values_list('user', flat=True)
         feed_ids = [request.user.id] + list(following_users)
         posts = Post.objects.filter(user_id__in=feed_ids).select_related('user', 'user__profile', 'category').distinct()
@@ -103,6 +101,8 @@ def home_view(request):
     ctx.update({'posts': posts, 'form': form, 'active_category': active_category})
     return render(request, 'blog/home.html', ctx)
 
+
+# ── EXPLORE ───────────────────────────────────────────────────
 
 @login_required
 def explore_view(request):
@@ -150,6 +150,8 @@ def category_view(request, slug):
     return render(request, 'blog/category.html', ctx)
 
 
+# ── POST DETAIL ───────────────────────────────────────────────
+
 @login_required
 def post_detail_view(request, pk):
     ctx = _common_context(request)
@@ -159,6 +161,29 @@ def post_detail_view(request, pk):
     ctx.update({'post': post, 'comments': comments, 'form': form})
     return render(request, 'blog/post_detail.html', ctx)
 
+
+@login_required
+def edit_post_view(request, pk):
+    ctx = _common_context(request)
+    post = get_object_or_404(Post, pk=pk)
+
+    # Only the post author (with can_post permission) can edit
+    if post.user != request.user or not request.user.profile.can_post():
+        return HttpResponseForbidden("You don't have permission to edit this post.")
+
+    if request.method == 'POST':
+        form = PostEditForm(request.POST, request.FILES, instance=post)
+        if form.is_valid():
+            form.save()
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = PostEditForm(instance=post)
+
+    ctx.update({'form': form, 'post': post})
+    return render(request, 'blog/edit_post.html', ctx)
+
+
+# ── PROFILE ───────────────────────────────────────────────────
 
 @login_required
 def profile_view(request, username):
@@ -180,8 +205,6 @@ def profile_view(request, username):
 @login_required
 def edit_profile_view(request):
     ctx = _common_context(request)
-    # Always refresh from DB so the cached in-memory profile object
-    # never shows stale image URLs (fixes header image disappearing after save).
     profile = request.user.profile
     profile.refresh_from_db()
     if request.method == 'POST':
@@ -196,6 +219,8 @@ def edit_profile_view(request):
     return render(request, 'blog/edit_profile.html', ctx)
 
 
+# ── NOTIFICATIONS ─────────────────────────────────────────────
+
 @login_required
 def notifications_view(request):
     ctx = _common_context(request)
@@ -205,7 +230,108 @@ def notifications_view(request):
     return render(request, 'blog/notifications.html', ctx)
 
 
-# ── AJAX ───────────────────────────────────────────────────────
+# ── MESSAGING ─────────────────────────────────────────────────
+
+def _require_message_permission(user):
+    return user.profile.can_message()
+
+
+@login_required
+def inbox_view(request):
+    if not _require_message_permission(request.user):
+        return HttpResponseForbidden("You need manager, staff, or admin status to access messages.")
+    ctx = _common_context(request)
+    groups = request.user.message_groups.prefetch_related('members', 'messages').order_by('-created_at')
+    ctx.update({'groups': groups})
+    return render(request, 'blog/inbox.html', ctx)
+
+
+@login_required
+def message_group_view(request, group_id):
+    if not _require_message_permission(request.user):
+        return HttpResponseForbidden("You need manager, staff, or admin status to access messages.")
+    group = get_object_or_404(MessageGroup, pk=group_id)
+    if request.user not in group.members.all():
+        return HttpResponseForbidden("You are not a member of this group.")
+
+    ctx = _common_context(request)
+    # Mark messages as read
+    group.messages.exclude(sender=request.user).update(is_read=True)
+
+    if request.method == 'POST':
+        form = MessageForm(request.POST, request.FILES)
+        if form.is_valid():
+            msg = form.save(commit=False)
+            msg.group = group
+            msg.sender = request.user
+            msg.save()
+            # Notify other members
+            for member in group.members.exclude(id=request.user.id):
+                Notification.objects.create(
+                    recipient=member,
+                    sender=request.user,
+                    notif_type='message',
+                )
+            return redirect('message_group', group_id=group.pk)
+    else:
+        form = MessageForm()
+
+    messages_qs = group.messages.select_related('sender', 'sender__profile')
+    ctx.update({'group': group, 'messages': messages_qs, 'form': form})
+    return render(request, 'blog/message_group.html', ctx)
+
+
+@login_required
+def create_group_view(request):
+    """Create a new named group chat — staff/superuser only."""
+    if not request.user.profile.can_create_group():
+        return HttpResponseForbidden("Only staff or admins can create group chats.")
+    ctx = _common_context(request)
+    if request.method == 'POST':
+        form = MessageGroupForm(request.POST)
+        if form.is_valid():
+            group = form.save(commit=False)
+            group.created_by = request.user
+            group.is_direct = False
+            group.save()
+            group.members.add(request.user)
+            # Add selected members
+            for member in form.cleaned_data.get('members', []):
+                group.members.add(member)
+            return redirect('message_group', group_id=group.pk)
+    else:
+        form = MessageGroupForm()
+    ctx.update({'form': form})
+    return render(request, 'blog/create_group.html', ctx)
+
+
+@login_required
+def start_dm_view(request, username):
+    """Start or open a 1-to-1 DM thread with another user."""
+    if not _require_message_permission(request.user):
+        return HttpResponseForbidden("You need manager, staff, or admin status to send messages.")
+    target = get_object_or_404(User, username=username)
+    if target == request.user:
+        return redirect('inbox')
+
+    # Look for existing DM between these two users
+    existing = MessageGroup.objects.filter(
+        is_direct=True,
+        members=request.user
+    ).filter(members=target)
+    if existing.exists():
+        return redirect('message_group', group_id=existing.first().pk)
+
+    # Create new DM group
+    group = MessageGroup.objects.create(
+        created_by=request.user,
+        is_direct=True,
+    )
+    group.members.add(request.user, target)
+    return redirect('message_group', group_id=group.pk)
+
+
+# ── AJAX ──────────────────────────────────────────────────────
 
 @login_required
 @require_POST
@@ -266,7 +392,6 @@ def add_comment(request, pk):
         post=post, user=request.user, content=content, parent=parent
     )
 
-    # Notifications
     if parent:
         if parent.user != request.user:
             Notification.objects.create(
@@ -286,7 +411,11 @@ def add_comment(request, pk):
 @require_POST
 def delete_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
-    if post.user != request.user:
+    profile = request.user.profile
+    # Owner with can_post, staff, or superuser can delete
+    if post.user != request.user and not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({'deleted': False, 'error': 'Forbidden'}, status=403)
+    if post.user == request.user and not profile.can_post():
         return JsonResponse({'deleted': False, 'error': 'Forbidden'}, status=403)
     post.delete()
     return JsonResponse({'deleted': True})

@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from .models import Post, Comment, Profile
+from .models import Post, Comment, Profile, MessageGroup, Message
 
 
 class RegisterForm(UserCreationForm):
@@ -39,6 +39,20 @@ class PostForm(forms.ModelForm):
         }
 
 
+class PostEditForm(forms.ModelForm):
+    """Form for editing an existing post (author + can_post users)."""
+    class Meta:
+        model = Post
+        fields = ['title', 'content', 'image', 'category']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'placeholder': "What's on your mind?",
+                'rows': 5,
+            }),
+            'title': forms.TextInput(attrs={'placeholder': 'Title (optional)'}),
+        }
+
+
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
@@ -52,37 +66,59 @@ class CommentForm(forms.ModelForm):
 
 
 class ProfileEditForm(forms.ModelForm):
-    """
-    Wraps Profile fields + User.first_name / User.last_name in one form.
-    Initial values for first_name / last_name are populated from the related
-    User instance so the template can just render {{ form.first_name.value }}.
-    On save, both User and Profile are persisted.
-    """
     first_name = forms.CharField(max_length=30, required=False, label='First name')
-    last_name  = forms.CharField(max_length=30, required=False, label='Last name')
+    last_name = forms.CharField(max_length=30, required=False, label='Last name')
 
     class Meta:
-        model  = Profile
+        model = Profile
         fields = ['avatar', 'header_image', 'bio', 'location', 'website']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Seed User name fields from the related User object.
-        # Works whether the form is unbound (GET) or re-bound after failed POST.
         if self.instance and self.instance.pk:
             user = self.instance.user
-            # Only set initial when NOT submitted (unbound form).
-            # For a bound form Django already has the POST data.
             if not self.is_bound:
                 self.fields['first_name'].initial = user.first_name
-                self.fields['last_name'].initial  = user.last_name
+                self.fields['last_name'].initial = user.last_name
 
     def save(self, commit=True):
         profile = super().save(commit=False)
         user = profile.user
         user.first_name = self.cleaned_data.get('first_name', '')
-        user.last_name  = self.cleaned_data.get('last_name', '')
+        user.last_name = self.cleaned_data.get('last_name', '')
         if commit:
             user.save()
             profile.save()
         return profile
+
+
+class MessageGroupForm(forms.ModelForm):
+    """Form for creating a new named group chat (staff/superuser only)."""
+    members = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label='Add members',
+        help_text='Select users to add to this group.',
+    )
+
+    class Meta:
+        model = MessageGroup
+        fields = ['name', 'description', 'members']
+        widgets = {
+            'name': forms.TextInput(attrs={'placeholder': 'Group name'}),
+            'description': forms.TextInput(attrs={'placeholder': 'Short description (optional)'}),
+        }
+
+
+class MessageForm(forms.ModelForm):
+    """Form for sending a message inside a group."""
+    class Meta:
+        model = Message
+        fields = ['content', 'image']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'placeholder': 'Type a message…',
+                'rows': 2,
+            }),
+        }

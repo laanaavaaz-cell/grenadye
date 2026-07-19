@@ -1,0 +1,52 @@
+{% extends 'app_base.html' %}
+{% block title %}Edit Post — Grenadye.net{% endblock %}
+
+{% block main_content %}
+<div class="feed-header">
+  <a href="javascript:history.back()" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+  <h2>Edit Post</h2>
+</div>
+
+<div class="compose-box" style="padding:20px;">
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="modal-fields" style="width:100%;">
+      <input type="text" name="title" placeholder="Title (optional)" class="modal-title-input"
+             value="{{ form.title.value|default:'' }}" />
+      <textarea name="content" id="edit-content" maxlength="2000"
+                placeholder="What's on your mind?"
+                oninput="updateCharCount(this,'edit-char-count','edit-submit-btn',2000)">{{ form.content.value|default:'' }}</textarea>
+
+      {% if post.image %}
+      <div class="img-preview-wrap" style="margin:8px 0;">
+        <img src="{{ post.image.url }}" alt="current image" style="max-width:100%;border-radius:12px;" />
+        <p style="font-size:12px;color:var(--muted);margin-top:4px;">Current image — upload a new one to replace it.</p>
+      </div>
+      {% endif %}
+
+      <div class="modal-toolbar" style="margin-top:12px;">
+        <div class="modal-tools">
+          <label class="tool-btn" title="Replace image">
+            <i class="fa-regular fa-image"></i>
+            <input type="file" name="image" accept="image/*" hidden />
+          </label>
+          {% if request.user.is_staff or request.user.is_superuser %}
+          <select name="category" class="cat-select">
+            <option value="">📂 Category</option>
+            {% for cat in categories %}
+              <option value="{{ cat.id }}" {% if form.category.value == cat.id|stringformat:"s" %}selected{% endif %}>
+                {{ cat.icon }} {{ cat.name }}
+              </option>
+            {% endfor %}
+          </select>
+          {% endif %}
+        </div>
+        <div class="modal-actions">
+          <span class="char-count" id="edit-char-count">{{ form.content.value|default:''|length }}/2000</span>
+          <button type="submit" class="post-btn" id="edit-submit-btn">Save</button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

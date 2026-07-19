@@ -1,0 +1,40 @@
+{% extends 'app_base.html' %}
+{% block title %}New Group — Grenadye.net{% endblock %}
+
+{% block main_content %}
+<div class="feed-header">
+  <a href="{% url 'inbox' %}" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+  <h2>Create Group</h2>
+</div>
+
+<div class="compose-box" style="padding:20px;flex-direction:column;gap:16px;">
+  <form method="POST" style="width:100%;">
+    {% csrf_token %}
+
+    <div class="form-field" style="margin-bottom:12px;">
+      <label class="form-label">Group Name</label>
+      {{ form.name }}
+    </div>
+
+    <div class="form-field" style="margin-bottom:12px;">
+      <label class="form-label">Description</label>
+      {{ form.description }}
+    </div>
+
+    <div class="form-field" style="margin-bottom:20px;">
+      <label class="form-label">Add Members</label>
+      <div class="member-checklist">
+        {% for choice in form.members %}
+          <label class="member-check-item">
+            {{ choice.tag }} {{ choice.choice_label }}
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <button type="submit" class="post-btn" style="width:100%;justify-content:center;">
+      <i class="fa-solid fa-users"></i> Create Group
+    </button>
+  </form>
+</div>
+{% endblock %}

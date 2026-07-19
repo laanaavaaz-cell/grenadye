@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+
 class Category(models.Model):
     name = models.CharField(max_length=60, unique=True)
     slug = models.SlugField(unique=True)
@@ -15,6 +16,7 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = "Categories"
 
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     avatar = models.ImageField(upload_to='avatars/', blank=True)
@@ -24,18 +26,32 @@ class Profile(models.Model):
     website = models.URLField(blank=True)
     following = models.ManyToManyField('self', symmetrical=False, blank=True, related_name='followers')
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
+    # Role flags
+    is_editor = models.BooleanField(default=False)   # can create/edit/delete own posts
+    is_manager = models.BooleanField(default=False)  # can access messaging system
+
     def __str__(self):
         return f"{self.user.username}'s Profile"
 
     def followers_count(self):
         return self.followers.count()
-    
+
     def following_count(self):
         return self.following.count()
-    
+
     def posts_count(self):
         return self.user.posts.count()
+
+    def can_post(self):
+        return self.is_editor or self.user.is_staff or self.user.is_superuser
+
+    def can_message(self):
+        return self.is_manager or self.user.is_staff or self.user.is_superuser
+
+    def can_create_group(self):
+        return self.user.is_staff or self.user.is_superuser
+
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
@@ -45,7 +61,7 @@ class Post(models.Model):
     image = models.ImageField(upload_to='posts/', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         ordering = ['-created_at']
 
@@ -54,9 +70,10 @@ class Post(models.Model):
 
     def likes_count(self):
         return self.likes.filter(target_type='post').count()
-    
+
     def comments_count(self):
         return self.comments.count()
+
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
@@ -64,7 +81,7 @@ class Comment(models.Model):
     content = models.TextField(max_length=500)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         ordering = ['created_at']
 
@@ -74,25 +91,30 @@ class Comment(models.Model):
     def likes_count(self):
         return self.likes.filter(target_type='comment').count()
 
+
 class Like(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='likes')
-    target_type = models.CharField(max_length=10, choices=[('post','post'),('comment','comment')])
+    target_type = models.CharField(max_length=10, choices=[('post', 'post'), ('comment', 'comment')])
     post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True, blank=True, related_name='likes')
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, null=True, blank=True, related_name='likes')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = [('user','post','target_type'),('user','comment','target_type')]
+        unique_together = [('user', 'post', 'target_type'), ('user', 'comment', 'target_type')]
 
     def __str__(self):
         if self.target_type == 'post':
             return f"{self.user.username} liked Post {self.post_id}"
         return f"{self.user.username} liked Comment {self.comment_id}"
 
+
 class Notification(models.Model):
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_notifications')
-    notif_type = models.CharField(max_length=20, choices=[('like','like'),('comment','comment'),('follow','follow'),('reply','reply')])
+    notif_type = models.CharField(
+        max_length=20,
+        choices=[('like', 'like'), ('comment', 'comment'), ('follow', 'follow'), ('reply', 'reply'), ('message', 'message')]
+    )
     post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True, blank=True)
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, null=True, blank=True)
     is_read = models.BooleanField(default=False)
@@ -104,10 +126,55 @@ class Notification(models.Model):
     def __str__(self):
         return f"Notif {self.notif_type} from {self.sender.username} to {self.recipient.username}"
 
+
+# ── MESSAGING ─────────────────────────────────────────────────
+
+class MessageGroup(models.Model):
+    name = models.CharField(max_length=100, blank=True)
+    description = models.CharField(max_length=255, blank=True)
+    is_direct = models.BooleanField(default=False)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_groups')
+    members = models.ManyToManyField(User, related_name='message_groups', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        if self.is_direct:
+            names = ' & '.join(self.members.values_list('username', flat=True)[:2])
+            return f"DM: {names}"
+        return self.name or f"Group #{self.pk}"
+
+    def last_message(self):
+        return self.messages.order_by('-created_at').first()
+
+    def unread_count(self, user):
+        return self.messages.exclude(sender=user).filter(is_read=False).count()
+
+
+class Message(models.Model):
+    group = models.ForeignKey(MessageGroup, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    content = models.TextField(max_length=2000)
+    image = models.ImageField(upload_to='messages/', blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Msg by {self.sender.username} in {self.group_id}"
+
+
+# ── SIGNALS ───────────────────────────────────────────────────
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
+
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):

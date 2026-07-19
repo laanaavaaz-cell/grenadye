@@ -1,0 +1,67 @@
+{% extends 'app_base.html' %}
+{% block title %}Messages — Grenadye.net{% endblock %}
+
+{% block main_content %}
+<div class="feed-header">
+  <h2>Messages</h2>
+  {% if request.user.profile.can_create_group %}
+  <a href="{% url 'create_group' %}" class="post-btn" style="margin-left:auto;font-size:13px;padding:6px 14px;">
+    <i class="fa-solid fa-plus"></i> New Group
+  </a>
+  {% endif %}
+</div>
+
+{% if groups %}
+  {% for group in groups %}
+  {% with last=group.last_message unread=group.unread_count %}
+  <a href="{% url 'message_group' group_id=group.pk %}" class="inbox-row">
+    <div class="avatar avatar-sm">
+      {% if group.is_direct %}
+        {% for m in group.members.all %}
+          {% if m != request.user %}
+            {% if m.profile.avatar %}
+              <img src="{{ m.profile.avatar.url }}" alt="avatar" />
+            {% else %}
+              <span>{{ m.username|slice:":1"|upper }}</span>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <span style="font-size:18px;">💬</span>
+      {% endif %}
+    </div>
+    <div class="inbox-info">
+      <div class="inbox-name">
+        {% if group.is_direct %}
+          {% for m in group.members.all %}{% if m != request.user %}{{ m.username }}{% endif %}{% endfor %}
+        {% else %}
+          {{ group.name }}
+        {% endif %}
+        {% with unread=group.unread_count request.user %}
+        {% endwith %}
+      </div>
+      <div class="inbox-preview">
+        {% if group.last_message %}
+          <span class="inbox-sender">{{ group.last_message.sender.username }}:</span>
+          {{ group.last_message.content|truncatechars:60 }}
+        {% else %}
+          <span style="color:var(--muted);">No messages yet</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="inbox-meta">
+      {% if group.last_message %}
+        <span class="inbox-time">{{ group.last_message.created_at|timesince }} ago</span>
+      {% endif %}
+    </div>
+  </a>
+  {% endwith %}
+  {% endfor %}
+{% else %}
+  <div class="empty-state">
+    <i class="fa-regular fa-comment-dots"></i>
+    <h3>No conversations yet</h3>
+    <p>Start a DM from someone's profile, or create a group.</p>
+  </div>
+{% endif %}
+{% endblock %}
